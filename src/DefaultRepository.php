@@ -20,8 +20,12 @@ class DefaultRepository implements Repository
     /** @var RepositoryManager */
     private $manager;
 
+    /** @var string */
+    private $className;
+
     public function __construct(RepositoryDefinition $definition, RepositoryManager $manager)
     {
+        $this->className = $definition->getEntityDefinition()->getClassName();
         $this->definition = $definition;
         $this->manager = $manager;
     }
@@ -62,7 +66,7 @@ class DefaultRepository implements Repository
      */
     public function query(): EntityQueryBuilder
     {
-        return new EntityQueryBuilder($this);
+        return $this->manager->createEntityQueryBuilder($this->className);
     }
 
     /**

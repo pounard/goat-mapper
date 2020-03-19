@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Mapper;
 
+use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\RelationDoesNotExistError;
 use Goat\Mapper\Query\EntityQueryBuilder;
@@ -51,7 +52,7 @@ interface Repository
      * key than primary key for loading (any unique key or other conditions
      * for example).
      *
-     * @param mixed|mixed[] $id
+     * @param mixed|mixed[]|Identifier $id
      *   Can be either of:
      *     - a single value, if primary key has one column,
      *     - an array with a single value, if primary key has one column,

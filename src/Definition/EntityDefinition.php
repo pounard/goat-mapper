@@ -24,6 +24,16 @@ class EntityDefinition
         return $this->className;
     }
 
+    /**
+     * Get property name list
+     *
+     * @return string[]
+     */
+    public function getPropertyNames(): array
+    {
+        return \array_keys($this->columnMap);
+    }
+
     public function getColumn(string $propertyName): ?string
     {
         return $this->columnMap[$propertyName] ?? null;

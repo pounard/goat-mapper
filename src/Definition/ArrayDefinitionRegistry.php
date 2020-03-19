@@ -20,16 +20,24 @@ use Goat\Mapper\Error\RepositoryDoesNotExistError;
  *             SQL-COLUMN-NAME => SQL-TYPE,
  *             (...,)
  *         ],
+ *         'columns' => [
+ *              ENTITY-PROPERTY-NAME => SQL-COLUMN-NAME,
+ *         ],
  *         'relations' => [
  *             [
  *                 'class_name' => CLASS-FQDN (repository MUST exist),
  *                 'table' => SQL-TABLE-NAME,
  *                 ('schema' => SQL-TABLE-SCHEMA,)
  *                 'mode' => "one_to_one" | "one_to_many" | "many_to_one" | "many_to_many",
- *                 'key' => [
+ *                 'target_key' => [
  *                     SQL-COLUMN-NAME => SQL-TYPE,
  *                     (...,)
  *                 ],
+ *                 ('key_in' => "mapping" | "source" | "target",)
+ *                 ('source_key' => [
+ *                     SQL-COLUMN-NAME => SQL-TYPE,
+ *                     (...,)
+ *                 ],)
  *             ],
  *             (...,)
  *         ],
@@ -69,6 +77,20 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         return new Table($name, $schema ?? $this->defaultSchema);
     }
 
+    /** @return array<string,string> */
+    private function parseKeyValueArray(array $input): array
+    {
+        foreach ($input as $key => $value) {
+            if (!\is_string($key)) {
+                throw new InvalidRepositoryDefinitionError(\sprintf("Key must be a string"));
+            }
+            if (!\is_string($value)) {
+                throw new InvalidRepositoryDefinitionError(\sprintf("Value must be a string"));
+            }
+        }
+        return $input;
+    }
+
     /** @return Column[] */
     private function parseColumnArray(array $input): array
     {
@@ -102,6 +124,23 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         ));
     }
 
+    private function valueToKeyIn(string $value): int
+    {
+        if ('mapping' === $value) {
+            return Relation::KEY_IN_MAPPING;
+        }
+        if ('source' === $value) {
+            return Relation::KEY_IN_SOURCE;
+        }
+        if ('target' === $value) {
+            return Relation::KEY_IN_TARGET;
+        }
+        throw new InvalidRepositoryDefinitionError(\sprintf(
+            "Key in must be one of '%s', got '%s'.",
+            \implode("', '", ['mapping', 'source', 'target']), $value
+        ));
+    }
+
     private function parseRelation(array $input): Relation
     {
         $propertyName = $input['property_name'] ?? null;
@@ -120,13 +159,18 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         if (empty($input['table'])) {
             throw new InvalidRepositoryDefinitionError(\sprintf("Relation to class %s has no table set.", $className));
         }
+        if (empty($input['target_key'])) {
+            throw new InvalidRepositoryDefinitionError(\sprintf("Relation to class %s has no target_key set.", $className));
+        }
 
         return new Relation(
             $propertyName,
             $className,
             $this->valueToMode($input['mode'] ?? 'null'),
             $this->getTable($input['table'], $input['schema'] ?? null),
-            new Key($this->parseColumnArray($input['key'] ?? []))
+            new Key($this->parseColumnArray($input['target_key'])),
+            isset($input['key_in']) ? $this->valueToKeyIn($input['key_in']) : null,
+            isset($input['source_key']) ? new Key($this->parseColumnArray($input['source_key'])) : null
         );
     }
 
@@ -156,7 +200,10 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         }
 
         return new RepositoryDefinition(
-            new EntityDefinition($className),
+            new EntityDefinition(
+                $className,
+                $this->parseKeyValueArray($input['columns'] ?? [])
+            ),
             $this->getTable((string)$input['table'], $input['schema'] ?? null),
             new PrimaryKey($this->parseColumnArray($input['primary_key'] ?? [])),
             $this->parseRelationArray($input['relations'] ?? [])

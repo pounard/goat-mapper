@@ -43,24 +43,16 @@ class RepositoryDefinition
         $this->primaryKey = $primaryKey;
         $this->table = $table;
 
-        $className = $entityDefinition->getClassName();
-
         foreach ($relations as $relation) {
             \assert($relation instanceof Relation);
 
-            if (!$relation->getKey()->isCompatible($this->primaryKey)) {
-                throw new \InvalidArgumentException(\sprintf(
-                    "Relation to %s key is incompible with %s primary key.",
-                    $relation->getClassName(), $className
-                ));
-            }
-
             $propertyName = $relation->getPropertyName();
+
             if (isset($this->relations[$propertyName])) {
                 throw new PropertyError(\sprintf("A relation on property '%s' already exists",  $propertyName));
             }
-            $this->relations[$propertyName] = $relation;
 
+            $this->relations[$propertyName] = $relation;
             $this->relationClassNameMap[$relation->getClassName()][] = $propertyName;
         }
     }
@@ -89,17 +81,6 @@ class RepositoryDefinition
     public function getRelations(): array
     {
         return $this->relations;
-    }
-
-    private function findRelationWithClass(string $className): Relation
-    {
-        if ($relations = $this->relationClassNameMap[$className] ?? null) {
-            if (1 !== \count($relations)) {
-                throw new PropertyError(\sprintf("There is more than one relations using the class %s", $className));
-            }
-            return $this->relations[$relations[0]] ?? $this->relationDoesNotExists($className);
-        }
-        return $this->relationDoesNotExists($className);
     }
 
     /**
@@ -131,6 +112,17 @@ class RepositoryDefinition
     public function findColumnName(string $propertyName): ?string
     {
         return $this->entityDefinition->getColumn($propertyName);
+    }
+
+    private function findRelationWithClass(string $className): Relation
+    {
+        if ($relations = $this->relationClassNameMap[$className] ?? null) {
+            if (1 !== \count($relations)) {
+                throw new PropertyError(\sprintf("There is more than one relations using the class %s", $className));
+            }
+            return $this->relations[$relations[0]] ?? $this->relationDoesNotExists($className);
+        }
+        return $this->relationDoesNotExists($className);
     }
 
     private function doFindRelationWithPropertyName(string $propertyName): Relation

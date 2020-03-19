@@ -5,17 +5,23 @@ declare(strict_types=1);
 namespace Goat\Mapper\Query;
 
 use Goat\Mapper\Repository;
+use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Key;
+use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Query\QueryError;
 
 class EntityQueryBuilder
 {
+    /** @var EntityHydratorFactory */
+    private $entityHydratorFactory;
+
     /** @var Repository */
     private $repository;
 
-    public function __construct(Repository $repository)
+    public function __construct(Repository $repository, EntityHydratorFactory $entityHydratorFactory)
     {
         $this->repository = $repository;
+        $this->entityHydratorFactory = $entityHydratorFactory;
     }
 
     /**
@@ -23,7 +29,7 @@ class EntityQueryBuilder
      * keys being column names, values the associated set of values.
      *
      * @param \Goat\Mapper\Definition\Key $key
-     * @param mixed $id
+     * @param mixed|mixed[]|Identifier $id
      *   It can be any value if the key as a single column, otherwise it must
      *   be an array of values, ordered in the same order as the key definition.
      * @param null|string $tableOrAlias
@@ -41,12 +47,11 @@ class EntityQueryBuilder
      */
     public static function expandKey(Key $key, $id, ?string $tableOrAlias = null): array
     {
-        if (!\is_array($id)) {
-            $id = [$id];
-        } else {
-            $id = \array_values($id);
+        if (!$id instanceof Identifier) {
+            $id = new Identifier(\is_array($id) ? [$id] : $id);
         }
-        if (\count($id) !== $key->count()) {
+
+        if (!$id->isCompatible($key)) {
             throw new QueryError(\sprintf(
                 "Column count mismatch between key and user input, awaiting columns (in that order): '%s'",
                 \implode("', '", $key->getColumnNames()))
@@ -54,6 +59,7 @@ class EntityQueryBuilder
         }
 
         $ret = [];
+        $values = $id->toArray();
 
         foreach ($key->getColumnNames() as $i => $name) {
             // Repository can choose to actually already have prefixed the column
@@ -62,9 +68,9 @@ class EntityQueryBuilder
             // deambiguation from the start, or if the API user was extra
             // precautionous.
             if ($tableOrAlias && false === \strpos($name, '.')) {
-                $ret[$tableOrAlias.'.'.$name] = $id[$i];
+                $ret[$tableOrAlias.'.'.$name] = $values[$i];
             } else {
-                $ret[$name] = $id[$i];
+                $ret[$name] = $values[$i];
             }
         }
 
@@ -74,9 +80,9 @@ class EntityQueryBuilder
     /**
      * Create and get a SELECT query builder for this repository.
      */
-    public function fetch(): EntityFetchQueryBuilder
+    public function fetch(?string $primaryTableAlias = null): EntityFetchQueryBuilder
     {
-        return new EntityFetchQueryBuilder($this->repository);
+        return new EntityFetchQueryBuilder($this->entityHydratorFactory, $this->repository, $primaryTableAlias);
     }
 
     /**

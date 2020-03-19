@@ -6,6 +6,7 @@ namespace Goat\Mapper;
 
 use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Error\RepositoryDoesNotExistError;
+use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Query\EntityQueryBuilder;
 use Goat\Runner\Runner;
 
@@ -20,10 +21,17 @@ class DefaultRepositoryManager implements RepositoryManager
     /** @var Repository[] */
     private $repositories = [];
 
-    public function __construct(Runner $runner, DefinitionRegistry $definitionRegistry)
-    {
-        $this->runner = $runner;
+    /** @var EntityHydratorFactory */
+    private $entityHydratorFactory;
+
+    public function __construct(
+        Runner $runner,
+        DefinitionRegistry $definitionRegistry,
+        EntityHydratorFactory $entityHydratorFactor
+    ) {
         $this->definitionRegistry = $definitionRegistry;
+        $this->entityHydratorFactory = $entityHydratorFactor;
+        $this->runner = $runner;
     }
 
     /**
@@ -55,7 +63,10 @@ class DefaultRepositoryManager implements RepositoryManager
      */
     public function createEntityQueryBuilder(string $className): EntityQueryBuilder
     {
-        return $this->getRepository($className)->query();
+        return new EntityQueryBuilder(
+            $this->getRepository($className),
+            $this->entityHydratorFactory
+        );
     }
 
     private function createRepository(string $className): Repository

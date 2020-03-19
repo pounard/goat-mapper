@@ -15,6 +15,12 @@
             "homepage" : "https://www.makina-corpus.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:makinacorpus/generated-hydrator-bundle.git"
+        }
+    ],
     "minimum-stability" : "dev",
     "prefer-stable" : true,
     "autoload" : {
@@ -28,14 +34,15 @@
         }
     },
     "require" : {
+        "makinacorpus/goat-query": "^1.0.0",
+        "ocramius/generated-hydrator": "^3.1",
+        "ocramius/proxy-manager": "^2.7",
         "php" : ">=7.4",
         "psr/log": "^1.0",
-        "ramsey/uuid": "^3.8",
-        "ocramius/generated-hydrator": "^3.1",
-        "makinacorpus/goat-query": "^1.0@alpha",
-        "ocramius/proxy-manager": "^2.7"
+        "ramsey/uuid": "^3.8"
     },
     "require-dev" : {
+        "makinacorpus/generated-hydrator-bundle": "dev-master",
         "phpunit/phpunit" : "7.*",
         "symfony/config": "^4.4 || ^5.0",
         "symfony/console": "^4.0|^5.0",
