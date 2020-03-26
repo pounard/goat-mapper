@@ -33,7 +33,7 @@ interface RelationFetcher
      * @return <T>
      *   Where U is the target relation entity class.
      */
-    public function fetch(string $className, string $propertyName, Identifier $id): ?object;
+    public function single(string $className, string $propertyName, Identifier $id): ?object;
 
     /**
      * Creates a lazy collection of related entities.
@@ -45,7 +45,7 @@ interface RelationFetcher
      * @return Collection<U>
      *   Where U is the target relation entity class.
      */
-    public function fetchCollection(string $className, string $propertyName, Identifier $id): Collection;
+    public function collection(string $className, string $propertyName, Identifier $id): Collection;
 
     /**
      * Fetch a single value for each input
@@ -57,7 +57,7 @@ interface RelationFetcher
      * @return ResultSet<T,U>
      *   Where T is the source entity type, U the target relation
      */
-    public function fetchBulk(string $className, string $propertyName, array $identifiers): ResultSet;
+    public function bulkSingle(string $className, string $propertyName, array $identifiers): ResultSet;
 
     /**
      * @param string $className
@@ -67,5 +67,5 @@ interface RelationFetcher
      * @return ResultSet<T,Collection<U>>
      *   Where T is the source entity type, U the target relation
      */
-    public function fetchBulkCollection(string $className, string $propertyName, array $identifiers): ResultSet;
+    public function bulkCollection(string $className, string $propertyName, array $identifiers): ResultSet;
 }

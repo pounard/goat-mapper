@@ -62,7 +62,7 @@ class Relation
         Table $sourceTable,
         Key $targetKey,
         Key $sourceKey,
-        int $keyIn = null
+        ?int $keyIn = null
     ) {
         if ($mode < 1 || 4 < $mode) {
             throw new \InvalidArgumentException(\sprintf("Mode must be one of the %s::MODE_* constants.", __CLASS__));
@@ -82,11 +82,11 @@ class Relation
                     break;
 
                 case self::MODE_MANY_TO_ONE:
-                    $keyIn = self::KEY_IN_SOURCE;
+                    $keyIn = self::KEY_IN_TARGET;
                     break;
 
                 case self::MODE_ONE_TO_MANY:
-                    $keyIn = self::KEY_IN_TARGET;
+                    $keyIn = self::KEY_IN_SOURCE;
                     break;
 
                 case self::MODE_ONE_TO_ONE:
@@ -98,8 +98,10 @@ class Relation
             }
         } else if ($keyIn < 1 || 3 < $keyIn) {
             throw new \InvalidArgumentException(\sprintf("\$keyIn must be one of the %s::* constants.", __CLASS__));
-        } else if ((self::MODE_MANY_TO_MANY === $mode || self::MODE_ONE_TO_MANY === $mode) && self::KEY_IN_SOURCE === $keyIn) {
+        } else if ((self::MODE_MANY_TO_MANY === $mode || self::MODE_MANY_TO_ONE === $mode) && self::KEY_IN_SOURCE === $keyIn) {
             throw new \InvalidArgumentException(\sprintf("Relation key cannot be in source for any to many relations.", __CLASS__));
+        } else if ((self::MODE_MANY_TO_MANY === $mode || self::MODE_ONE_TO_MANY === $mode) && self::KEY_IN_TARGET === $keyIn) {
+            throw new \InvalidArgumentException(\sprintf("Relation key cannot be in target for many to any relations.", __CLASS__));
         }
 
         $this->className = $className;

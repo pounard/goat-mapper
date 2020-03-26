@@ -23,7 +23,7 @@ final class DefaultRelationFetcher implements RelationFetcher
     /**
      * {@inheritdoc}
      */
-    public function fetch(string $className, string $propertyName, Identifier $id): ?object
+    public function single(string $className, string $propertyName, Identifier $id): ?object
     {
         return $this
             ->relationQueryBuilder
@@ -36,7 +36,7 @@ final class DefaultRelationFetcher implements RelationFetcher
     /**
      * {@inheritdoc}
      */
-    public function fetchCollection(string $className, string $propertyName, Identifier $id): Collection
+    public function collection(string $className, string $propertyName, Identifier $id): Collection
     {
         return new DefaultCollection(function () use ($className, $propertyName, $id) {
             $result = $this
@@ -55,7 +55,7 @@ final class DefaultRelationFetcher implements RelationFetcher
     /**
      * {@inheritdoc}
      */
-    public function fetchBulk(string $className, string $propertyName, array $identifiers): ResultSet
+    public function bulkSingle(string $className, string $propertyName, array $identifiers): ResultSet
     {
         $result = $this
             ->relationQueryBuilder
@@ -77,7 +77,7 @@ final class DefaultRelationFetcher implements RelationFetcher
     /**
      * {@inheritdoc}
      */
-    public function fetchBulkCollection(string $className, string $propertyName, array $identifiers): ResultSet
+    public function bulkCollection(string $className, string $propertyName, array $identifiers): ResultSet
     {
         // @todo Order?
         $result = $this

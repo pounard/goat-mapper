@@ -135,6 +135,10 @@ abstract class AbstractCollection implements Collection, \IteratorAggregate
         }
         if (null === $this->values) {
             $this->initialize();
+            if (null !== $this->count) {
+                // initialize() call might have populated count.
+                return $this->count;
+            }
         }
 
         if (\is_countable($this->values)) {

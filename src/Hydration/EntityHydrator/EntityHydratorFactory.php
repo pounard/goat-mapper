@@ -65,21 +65,23 @@ class EntityHydratorFactory
 
             if ($relation->isMultiple()) {
                 // @todo Handle SQL EXISTS optimisation.
+                // For collections, we can safely create the lazy collections
+                // directly and return it. The SQL query will not be run until
+                // the collection is accessed.
                 $lazyProperties[$propertyName] = static function (Identifier $id) use ($context, $propertyName) {
-                    return $context->relationFetcher->fetchCollection($context->className, $propertyName, $id);
+                    return $context->relationFetcher->collection($context->className, $propertyName, $id);
                 };
             } else {
                 // For lazy one to one properties, we create a ghost proxy
                 // that will lazy load your object upon method access.
                 // @todo Handle SQL EXISTS optimisation.
                 // @todo Use a ghost proxy instead?
-                // @todo We do create a ghost whereas the result could return
-                //   null, this is WRONG.
+                // @todo We do create a ghost whereas the result could return null, this is WRONG.
                 $lazyProperties[$propertyName] = function (Identifier $id) use ($context, $relation, $propertyName) {
                     return $this->proxyFactory->getProxy(
                         $relation->getClassName(),
                         static function () use ($context, $propertyName, $id) {
-                            return $context->relationFetcher->fetch($context->className, $propertyName, $id);
+                            return $context->relationFetcher->single($context->className, $propertyName, $id);
                         }
                     );
                 };

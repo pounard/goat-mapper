@@ -4,16 +4,28 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Tests\Mock;
 
-use Ramsey\Uuid\UuidInterface;
+use Goat\Mapper\Definition\Builder\DefinitionBuilder;
+use Goat\Mapper\Entity\SelfDefinedEntity;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
-/* final */ class WithoutRelation
+/* final */ class WithoutRelation implements SelfDefinedEntity
 {
     /** @var UuidInterface */
     private $id;
 
     /** @var null|string */
     private $value;
+
+    public static function defineEntity(DefinitionBuilder $builder): void
+    {
+        $builder->setTableName('without_relation');
+        $builder->addProperty('id');
+        $builder->addProperty('value');
+        $builder->setPrimaryKey([
+            'id' => 'uuid',
+        ]);
+    }
 
     public static function toDefinitionArray(): array
     {

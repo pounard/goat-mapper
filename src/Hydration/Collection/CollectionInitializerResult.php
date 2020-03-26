@@ -21,10 +21,17 @@ final class CollectionInitializerResult
     private $count = null;
 
     /**
-     * @param iterable<T> $values
+     * @param iterable<T>|callable $values
      */
-    public function __construct(iterable $values, ?int $count = null)
+    public function __construct($values, ?int $count = null)
     {
+        if (\is_callable($values)) {
+            $values = $values();
+        }
+        if (!\is_iterable($values)) {
+            throw new \InvalidArgumentException("\$values argument must be iterable or callable.");
+        }
+
         $this->values = $values;
         $this->count = $count;
     }
