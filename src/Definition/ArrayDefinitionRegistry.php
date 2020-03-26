@@ -72,7 +72,7 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         );
     }
 
-    protected function getTable(string $name, ?string $schema): Table
+    private function createTable(string $name, ?string $schema): Table
     {
         return new Table($name, $schema ?? $this->defaultSchema);
     }
@@ -141,7 +141,7 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         ));
     }
 
-    private function parseRelation(array $input): Relation
+    private function parseRelation(array $input, Table $sourceTable, PrimaryKey $sourceKey): Relation
     {
         $propertyName = $input['property_name'] ?? null;
         if (!$propertyName) {
@@ -167,19 +167,20 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
             $propertyName,
             $className,
             $this->valueToMode($input['mode'] ?? 'null'),
-            $this->getTable($input['table'], $input['schema'] ?? null),
+            $this->createTable($input['table'], $input['schema'] ?? null),
+            $sourceTable,
             new Key($this->parseColumnArray($input['target_key'])),
+            isset($input['source_key']) ? new Key($this->parseColumnArray($input['source_key'])) : $sourceKey,
             isset($input['key_in']) ? $this->valueToKeyIn($input['key_in']) : null,
-            isset($input['source_key']) ? new Key($this->parseColumnArray($input['source_key'])) : null
         );
     }
 
     /** @return Relation[] */
-    private function parseRelationArray(array $input): array
+    private function parseRelationArray(array $input, Table $sourceTable, PrimaryKey $sourceKey): array
     {
         $ret = [];
         foreach ($input as $data) {
-            $ret[] = $this->parseRelation($data);
+            $ret[] = $this->parseRelation($data, $sourceTable, $sourceKey);
         }
         return $ret;
     }
@@ -199,14 +200,17 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
             throw new InvalidRepositoryDefinitionError(\sprintf("Repository for class %s has no table set.", $className));
         }
 
+        $table = $this->createTable((string)$input['table'], $input['schema'] ?? null);
+        $primaryKey = new PrimaryKey($this->parseColumnArray($input['primary_key'] ?? []));
+
         return new RepositoryDefinition(
             new EntityDefinition(
                 $className,
                 $this->parseKeyValueArray($input['columns'] ?? [])
             ),
-            $this->getTable((string)$input['table'], $input['schema'] ?? null),
-            new PrimaryKey($this->parseColumnArray($input['primary_key'] ?? [])),
-            $this->parseRelationArray($input['relations'] ?? [])
+            $table,
+            $primaryKey,
+            $this->parseRelationArray($input['relations'] ?? [], $table, $primaryKey)
         );
     }
 }

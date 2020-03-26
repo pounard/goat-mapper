@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Query;
+namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Repository;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\PropertyDoesNotExistError;
 use Goat\Mapper\Error\PropertyError;
+use Goat\Mapper\Repository\Repository;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\SelectQuery;
 use Goat\Query\UpdateQuery;

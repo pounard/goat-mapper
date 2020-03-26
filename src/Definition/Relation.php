@@ -43,7 +43,10 @@ class Relation
     private $keyIn;
 
     /** @var Table */
-    private $table;
+    private $targetTable;
+
+    /** @var Table */
+    private $sourceTable;
 
     /** @var Key */
     private $targetKey;
@@ -55,16 +58,20 @@ class Relation
         string $propertyName,
         string $className,
         int $mode,
-        Table $table,
+        Table $targetTable,
+        Table $sourceTable,
         Key $targetKey,
-        ?int $keyIn = null,
-        ?Key $sourceKey = null
+        Key $sourceKey,
+        int $keyIn = null
     ) {
         if ($mode < 1 || 4 < $mode) {
             throw new \InvalidArgumentException(\sprintf("Mode must be one of the %s::MODE_* constants.", __CLASS__));
         }
         if ($mode === self::MODE_MANY_TO_MANY) {
             throw new \InvalidArgumentException("Many to many is not supported yet as it needs a mapping table.");
+        }
+        if (!$sourceKey->isCompatible($targetKey)) {
+            throw new \InvalidArgumentException(\sprintf("Target key and source key must be compatible.", __CLASS__));
         }
 
         if (null === $keyIn) {
@@ -91,12 +98,8 @@ class Relation
             }
         } else if ($keyIn < 1 || 3 < $keyIn) {
             throw new \InvalidArgumentException(\sprintf("\$keyIn must be one of the %s::* constants.", __CLASS__));
-        } else if (self::KEY_IN_SOURCE === $keyIn && null === $sourceKey) {
-            throw new \InvalidArgumentException(\sprintf("Source key is mandatory is relation key is in source.", __CLASS__));
         } else if ((self::MODE_MANY_TO_MANY === $mode || self::MODE_ONE_TO_MANY === $mode) && self::KEY_IN_SOURCE === $keyIn) {
             throw new \InvalidArgumentException(\sprintf("Relation key cannot be in source for any to many relations.", __CLASS__));
-        } else if ($sourceKey && !$sourceKey->isCompatible($targetKey)) {
-            throw new \InvalidArgumentException(\sprintf("Target key and source key must be compatible.", __CLASS__));
         }
 
         $this->className = $className;
@@ -104,8 +107,9 @@ class Relation
         $this->mode = $mode;
         $this->propertyName = $propertyName;
         $this->sourceKey = $sourceKey;
-        $this->table = $table;
+        $this->sourceTable = $sourceTable;
         $this->targetKey = $targetKey;
+        $this->targetTable = $targetTable;
     }
 
     public function getClassName(): string
@@ -140,9 +144,17 @@ class Relation
     /**
      * Get target table
      */
-    public function getTable(): Table
+    public function getTargetTable(): Table
     {
-        return $this->table;
+        return $this->targetTable;
+    }
+
+    /**
+     * Get source table
+     */
+    public function getSourceTable(): Table
+    {
+        return $this->sourceTable;
     }
 
     /**
@@ -156,7 +168,7 @@ class Relation
     /**
      * Get key in source table
      */
-    public function getSourceKey(): ?Key
+    public function getSourceKey(): Key
     {
         return $this->sourceKey;
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Hydration;
+namespace Goat\Mapper\Hydration\Collection;
 
 /**
  * Object collections will be as opened as possible.

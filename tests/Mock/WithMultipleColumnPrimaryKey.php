@@ -31,6 +31,20 @@ namespace Goat\Mapper\Tests\Mock;
         ];
     }
 
+    public static function toTableSchema(): array
+    {
+        return [
+            'default' => <<<SQL
+CREATE TABLE with_multiple_key (
+    pkey1 INT NOT NULL,
+    pkey2 VARCHAR(128) NOT NULL,
+    value TEXT DEFAULT NULL
+    PRIMARY KEY (pkey1, pkey2)
+)
+SQL
+        ];
+    }
+
     public function getPkey1(): int
     {
         return $this->pkey1;

@@ -4,23 +4,18 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Test\Query\EntityFetchQueryBuilder;
 
-use Goat\Mapper\Tests\RepositoryTestTrait;
-use Goat\Mapper\Tests\Mock\WithToOneInMappingRelation;
+use Goat\Mapper\Tests\AbstractRepositoryTest;
 use Goat\Mapper\Tests\Mock\WithToOneInSourceRelation;
 use Goat\Mapper\Tests\Mock\WithToOneInTargetRelation;
-use PHPUnit\Framework\TestCase;
 
-final class ToOneEagerTest extends TestCase
+final class ToOneEagerTest extends AbstractRepositoryTest
 {
-    use RepositoryTestTrait;
-
     public function testEagerToOneInSourceTable(): void
     {
         $manager = $this->createRepositoryManager();
         $repository = $manager->getRepository(WithToOneInSourceRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch('foo')
             ->eager('relatedEntity')
             ->build()
@@ -32,15 +27,13 @@ SELECT
         AS "id",
     "foo"."target_id"
         AS "targetId",
-    "without_relation"."id"
-        AS "relatedEntity.id",
-    "without_relation"."value"
-        AS "relatedEntity.value"
+    "to_one_in_target"."id"
+        AS "relatedEntity.id"
 FROM "public"."to_one_in_source"
     AS "foo"
-LEFT OUTER JOIN "public"."without_relation"
+LEFT OUTER JOIN "public"."to_one_in_target"
     ON (
-        "without_relation"."id" = "foo"."target_id"
+        "to_one_in_target"."id" = "foo"."target_id"
     )
 SQL,
         $query);
@@ -52,7 +45,6 @@ SQL,
         $repository = $manager->getRepository(WithToOneInTargetRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch('bar')
             ->eager('relatedEntity')
             ->build()
@@ -78,11 +70,13 @@ SQL,
 
     public function testEagerToOneInMappingTable(): void
     {
+        self::markTestSkipped("Not implemented yet.");
+
+        /*
         $manager = $this->createRepositoryManager();
         $repository = $manager->getRepository(WithToOneInMappingRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch('foo')
             ->eager('relatedEntity')
             ->build()
@@ -104,5 +98,6 @@ LEFT OUTER JOIN "public"."without_relation"
     )
 SQL,
         $query);
+         */
     }
 }

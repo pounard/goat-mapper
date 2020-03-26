@@ -2,21 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Query;
+namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Repository;
+use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Definition\Relation;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\PropertyDoesNotExistError;
 use Goat\Mapper\Error\PropertyError;
+use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Error\RelationDoesNotExistError;
+use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorContext;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
+use Goat\Mapper\Query\Relation\DefaultRelationFetcher;
 use Goat\Query\ExpressionColumn;
 use Goat\Query\ExpressionRelation;
-use Goat\Query\QueryError;
 use Goat\Query\SelectQuery;
-use Goat\Query\Where;
 use Goat\Runner\ResultIterator;
+use Goat\Runner\Runner;
 
 /**
  * Entity-focused SELECT query builder.
@@ -41,16 +43,22 @@ use Goat\Runner\ResultIterator;
  *     query for lazyly loaded another entity, which at their turn will
  *     recursively be proxies with the same behaviour.
  */
-class EntityFetchQueryBuilder
+class EntitySelectQuery
 {
     /** @var array<string,int> */
     private $aliases = [];
 
+    /** @var string */
+    private $className;
+
     /** @var EntityHydratorFactory */
     private $entityHydratorFactory;
 
-    /** @var Repository */
-    private $repository;
+    /** @var RelationQueryBuilder */
+    private $relationQueryBuilder;
+
+    /** @var DefinitionRegistry */
+    private $definitionRegistry;
 
     /** @var RepositoryDefinition */
     private $definition;
@@ -61,24 +69,29 @@ class EntityFetchQueryBuilder
     /** @var string */
     private $primaryTableAlias;
 
+    /** @var Runner */
+    private $runner;
+
     /** @var SelectQuery */
     private $query;
 
     /** @var string[] */
-    // @todo set all one to one or many to one being default here
     private $eagerRelations = [];
 
-    /** @var string[] */
-    // @todo set all many to many or one to many being default here
-    private $lazyRelations = [];
-
-    public function __construct(EntityHydratorFactory $entityHydratorFactory, Repository $repository, ?string $primaryTableAlias = null)
-    {
-        $this->repository = $repository;
-        $this->definition = $repository->getRepositoryDefinition();
-
+    public function __construct(
+        Runner $runner,
+        DefinitionRegistry $definitionRegistry,
+        EntityHydratorFactory $entityHydratorFactory,
+        RelationQueryBuilder $relationQueryBuilder,
+        string $className,
+        ?string $primaryTableAlias = null
+    ) {
+        $this->runner = $runner;
+        $this->className = $className;
+        $this->definitionRegistry = $definitionRegistry;
+        $this->definition = $definitionRegistry->getRepositoryDefinition($className);
         $this->entityHydratorFactory = $entityHydratorFactory;
-
+        $this->relationQueryBuilder = $relationQueryBuilder;
         $this->primaryTableAlias = $this->getNextAlias($primaryTableAlias ?? $this->definition->getTable()->getName());
     }
 
@@ -116,8 +129,6 @@ class EntityFetchQueryBuilder
             case Relation::MODE_MANY_TO_ONE:
                 $propertyName = $definition->getPropertyName();
                 $this->eagerRelations[$propertyName] = true;
-                // Deactivate lazy fetch for this relation.
-                $this->lazyRelations[$propertyName] = false;
                 break;
 
             case Relation::MODE_ONE_TO_MANY:
@@ -148,7 +159,14 @@ class EntityFetchQueryBuilder
      */
     public function lazy(string $relation): self
     {
-        throw new \Exception("Implement me");
+        unset(
+            $this->eagerRelations[
+                $this
+                    ->definition
+                    ->getRelation($relation)
+                    ->getPropertyName()
+            ]
+        );
     }
 
     /**
@@ -211,7 +229,7 @@ class EntityFetchQueryBuilder
             }
         }
 
-        $this->getQuery()->condition($propertyNameOrCallack, $value);
+        $this->getSelectQuery()->condition($propertyNameOrCallack, $value);
 
         return $this;
     }
@@ -229,12 +247,16 @@ class EntityFetchQueryBuilder
         return $this;
     }
 
-    private function addRelationColumns(SelectQuery $query, string $propertyName, Relation $relation, string $tableAlias): void
+    /**
+     * Add repository columns to the given select query.
+     */
+    private function addEntityColumns(SelectQuery $query, string $className, string $tableAlias, ?string $propertyName = null): void
     {
         $targetEntityDefinition = $this
-            ->repository
-            ->getRelatedRepository($propertyName)
-            ->getRepositoryDefinition()
+            ->definitionRegistry
+            ->getRepositoryDefinition(
+                $className
+            )
             ->getEntityDefinition()
         ;
 
@@ -246,116 +268,69 @@ class EntityFetchQueryBuilder
             foreach ($columns as $targetPropertyName => $columName) {
                 $query->column(
                     ExpressionColumn::create($columName, $tableAlias),
-                    $propertyName.'.'.$targetPropertyName
+                    $propertyName ? $propertyName.'.'.$targetPropertyName : $targetPropertyName
                 );
             }
         } else {
-            // @todo I think this will not work, and we need to know the columns to
-            //   be able to do that...
-            // @todo exclude relations from that mapping, and allow it to be at least
-            //   lazy itself.
-            $query->column(ExpressionColumn::create('*', $tableAlias), $propertyName);
+            throw new QueryError("Cannot eargerly fetch a related entity whose properties are not defined.");
         }
 
+        // @todo Not sure this should be restored...
+        // $select->setOption('types', $this->defineSelectColumnsTypes());
         // @todo prepare hydrator to hydrate nested.
         // @todo handle potential name conflicts.
     }
 
-    private function handleEagerToOneInSourceTableRelation(SelectQuery $query, string $propertyName, Relation $relation): void
+    private function addRelationColumns(
+        SelectQuery $query,
+        Relation $relation,
+        string $targetTableAlias
+    ): void {
+        $propertyName = $relation->getPropertyName();
+
+        self::addEntityColumns(
+            $query,
+            $this
+                ->definition
+                ->getRelation($propertyName)
+                ->getClassName(),
+            $targetTableAlias,
+            $propertyName
+        );
+    }
+
+    private function handleEagerToOneRelation(SelectQuery $query, Relation $relation): void
     {
-        $table = $relation->getTable();
-        $alias = $this->getNextAlias($table->getName());
-        $tableExpression = ExpressionRelation::create($table->getName(), $alias, $table->getSchema());
-
-        $targetKeyColumns = $relation->getTargetKey();
-        $sourceKeyColumnsMap = $relation->getSourceKey()->getColumnNames();
-
-        $joinConditions = (new Where());
-        foreach ($targetKeyColumns->getColumnNames() as $i => $columnName) {
-            $joinConditions->isEqual(
-                ExpressionColumn::create($columnName, $alias),
-                ExpressionColumn::create($sourceKeyColumnsMap[$i], $this->primaryTableAlias)
-            );
-        }
+        $targetTableAlias = $this->getNextAlias($relation->getTargetTable()->getName());
 
         // We will always use a LEFT JOIN to avoid ghosting existing source
         // relation objects from missing target entity. Even when the relation
         // is required, we cannot let broken making our entity invisible to our
         // users.
-        $query->leftJoin($tableExpression, $joinConditions);
-
-        $this->addRelationColumns($query, $propertyName, $relation, $alias);
+        QueryHelper::addJoinStatement($query, $relation, $this->primaryTableAlias, $targetTableAlias, true);
+        $this->addRelationColumns($query, $relation, $targetTableAlias);
     }
 
-    private function handleEagerToOneInTargetTableRelation(SelectQuery $query, string $propertyName, Relation $relation): void
-    {
-        $table = $relation->getTable();
-        $alias = $this->getNextAlias($table->getName());
-        $tableExpression = ExpressionRelation::create($table->getName(), $alias, $table->getSchema());
-
-        $targetKeyColumns = $relation->getTargetKey();
-        $sourceKeyColumnsMap = $this->definition->getPrimaryKey()->getColumnNames();
-
-        $joinConditions = (new Where());
-        foreach ($targetKeyColumns->getColumnNames() as $i => $columnName) {
-            $joinConditions->isEqual(
-                ExpressionColumn::create($columnName, $alias),
-                ExpressionColumn::create($sourceKeyColumnsMap[$i], $this->primaryTableAlias)
-            );
-        }
-
-        // We will always use a LEFT JOIN to avoid ghosting existing source
-        // relation objects from missing target entity. Even when the relation
-        // is required, we cannot let broken making our entity invisible to our
-        // users.
-        $query->leftJoin($tableExpression, $joinConditions);
-
-        $this->addRelationColumns($query, $propertyName, $relation, $alias);
-    }
-
-    private function handleEagerToOneInMappingTableRelation(SelectQuery $query, string $propertyName, Relation $relation): void
+    private function handleEagerToManyWithKeyInTargetTableRelation(SelectQuery $query, Relation $relation): void
     {
         throw new \Exception("Not implemented yet.");
     }
 
-    private function handleEagerToOneRelation(SelectQuery $query, string $propertyName, Relation $relation): void
+    private function handleEagerToManyWithMappingTableRelation(SelectQuery $query, Relation $relation): void
+    {
+        throw new \Exception("Not implemented yet.");
+    }
+
+    private function handleEagerToManyRelation(SelectQuery $query, Relation $relation): void
     {
         switch ($relation->getKeyIn()) {
 
             case Relation::KEY_IN_MAPPING:
-                $this->handleEagerToOneInMappingTableRelation($query, $propertyName, $relation);
+                $this->handleEagerToManyWithMappingTableRelation($query, $relation);
                 break;
 
             case Relation::KEY_IN_TARGET:
-                $this->handleEagerToOneInTargetTableRelation($query, $propertyName, $relation);
-                break;
-
-            case Relation::KEY_IN_SOURCE:
-                $this->handleEagerToOneInSourceTableRelation($query, $propertyName, $relation);
-                break;
-        }
-    }
-
-    private function handleEagerToManyWithKeyInTargetTableRelation(SelectQuery $query, string $propertyName, Relation $relation): void
-    {
-        throw new \Exception("Not implemented yet.");
-    }
-
-    private function handleEagerToManyWithMappingTableRelation(SelectQuery $query, string $propertyName, Relation $relation): void
-    {
-        throw new \Exception("Not implemented yet.");
-    }
-
-    private function handleEagerToManyRelation(SelectQuery $query, string $propertyName, Relation $relation): void
-    {
-        switch ($relation->getKeyIn()) {
-
-            case Relation::KEY_IN_MAPPING:
-                $this->handleEagerToManyWithMappingTableRelation($query, $propertyName, $relation);
-                break;
-
-            case Relation::KEY_IN_TARGET:
-                $this->handleEagerToManyWithKeyInTargetTableRelation($query, $propertyName, $relation);
+                $this->handleEagerToManyWithKeyInTargetTableRelation($query, $relation);
                 break;
 
             default:
@@ -363,12 +338,12 @@ class EntityFetchQueryBuilder
         }
     }
 
-    private function handleEagerRelation(SelectQuery $query, string $propertyName, Relation $relation): void
+    private function handleEagerRelation(SelectQuery $query, Relation $relation): void
     {
         if ($relation->isMultiple()) {
-            $this->handleEagerToManyRelation($query, $propertyName, $relation);
+            $this->handleEagerToManyRelation($query, $relation);
         } else {
-            $this->handleEagerToOneRelation($query, $propertyName, $relation);
+            $this->handleEagerToOneRelation($query, $relation);
         }
     }
 
@@ -377,49 +352,53 @@ class EntityFetchQueryBuilder
      */
     public function build(): SelectQuery
     {
-        $query = $this->getQuery();
-
-        $entityDefinition = $this->definition->getEntityDefinition();
-        $lazyPropertyNames = [];
+        $query = $this->getSelectQuery();
+        $context = new EntityHydratorContext($this->className);
 
         if ($this->withColumns) {
-            if ($columnMap = $entityDefinition->getColumnMap()) {
-                foreach ($columnMap as $propertyName => $columnName) {
-                    $query->column(
-                        ExpressionColumn::create($columnName, $this->primaryTableAlias),
-                        $propertyName
-                    );
-                }
-            } else {
-                $query->column(ExpressionColumn::create('*', $this->primaryTableAlias));
-            }
 
-            $query->setOption('class', $entityDefinition->getClassName());
+            $this->addEntityColumns(
+                $query,
+                $this->className,
+                $this->primaryTableAlias
+            );
 
-            // @todo Not sure this should be restored...
-            // $select->setOption('types', $this->defineSelectColumnsTypes());
+            $query->setOption('class', $this->className);
 
-            foreach ($this->repository->getRepositoryDefinition()->getRelations() as $relation) {
+            foreach ($this->definition->getRelations() as $relation) {
                 $propertyName = $relation->getPropertyName();
+
                 if ($this->eagerRelations[$propertyName] ?? false) {
-                    $this->handleEagerRelation($query, $propertyName, $relation);
+                    $this->handleEagerRelation($query, $relation);
                 } else {
-                    $lazyPropertyNames[] = $propertyName;
+                    $context->lazyPropertyNames[] = $propertyName;
                 }
             }
-
-            // @todo handle lazy to one relations
-            // @todo handle lazy to many relations
         }
+
+        if ($context->lazyPropertyNames) {
+            $context->relationFetcher = new DefaultRelationFetcher(
+                $this->relationQueryBuilder
+            );
+        }
+
+        $entityHydrator = $this
+            ->entityHydratorFactory
+            ->createHydrator(
+                $context
+            )
+        ;
+
+        $primaryKey = $this->definition->getPrimaryKey();
 
         $query->setOption(
             'hydrator',
-            $this
-                ->entityHydratorFactory
-                ->createHydrator(
-                    $this->repository,
-                    $lazyPropertyNames
-                )
+            static function (array $values) use ($primaryKey, $entityHydrator) {
+                return $entityHydrator(
+                    $primaryKey->createIdentifierFromRow($values),
+                    $values
+                );
+            }
         );
 
         return $query;
@@ -445,7 +424,7 @@ class EntityFetchQueryBuilder
         return $this->primaryTableAlias;
     }
 
-    private function getNextAlias(string $alias): string
+    public function getNextAlias(string $alias): string
     {
         if (isset($this->aliases[$alias])) {
             return $alias.'_'.(++$this->aliases[$alias]);
@@ -455,7 +434,7 @@ class EntityFetchQueryBuilder
         return $alias;
     }
 
-    private function getQuery(): SelectQuery
+    public function getSelectQuery(): SelectQuery
     {
         return $this->query ?? (
             $this->query = $this->createSelect()
@@ -473,8 +452,7 @@ class EntityFetchQueryBuilder
         );
 
         return $this
-            ->repository
-            ->getRunner()
+            ->runner
             ->getQueryBuilder()
             ->select($relation)
         ;

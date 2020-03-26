@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper;
+namespace Goat\Mapper\Repository;
 
-use Goat\Mapper\Query\EntityQueryBuilder;
+use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Runner\Runner;
 
 interface RepositoryManager
@@ -29,5 +29,5 @@ interface RepositoryManager
     /**
      * Create an arbitrary entity query builder.
      */
-    public function createEntityQueryBuilder(string $className): EntityQueryBuilder;
+    public function getQueryBuilderFactory(): QueryBuilderFactory;
 }

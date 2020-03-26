@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper;
+namespace Goat\Mapper\Repository;
 
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\RelationDoesNotExistError;
-use Goat\Mapper\Query\EntityQueryBuilder;
+use Goat\Mapper\Query\Entity\EntitySelectQuery;
 use Goat\Runner\Runner;
 
 /**
@@ -38,9 +38,9 @@ interface Repository
     public function getRelatedRepository(string $relation): Repository;
 
     /**
-     * Create and get an entity query builder.
+     * Create select query builder.
      */
-    public function query(): EntityQueryBuilder;
+    public function fetch(?string $primaryTableAlias = null): EntitySelectQuery;
 
     /**
      * Find one entity.

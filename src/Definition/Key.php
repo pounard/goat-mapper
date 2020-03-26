@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition;
 
-class Key
+use Goat\Mapper\Error\QueryError;
+
+class Key implements Debuggable
 {
     /** @var Column[] */
     private $columns;
@@ -18,6 +20,29 @@ class Key
     public function __construct(array $columns)
     {
         $this->columns = \array_values($columns);
+    }
+
+    /**
+     * Create an identifier matching this key from raw database result.
+     */
+    public function createIdentifierFromRow(array $values): Identifier
+    {
+        $ret = [];
+
+        foreach ($this->getColumnNames() as $columnName) {
+            if (!\array_key_exists($columnName, $values)) {
+                throw new QueryError(\sprintf(
+                    "Could not create identifier for key %s from row %s, missing %s column",
+                    $this->toString(),
+                    DebugHelper::arrayToString($values),
+                    $columnName
+                ));
+            }
+
+            $ret[] = $values[$columnName];
+        }
+
+        return new Identifier($ret);
     }
 
     public function isEmpty(): bool
@@ -71,5 +96,20 @@ class Key
             $ret[] = $column->getName();
         }
         return $ret;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function toString(): string
+    {
+        return DebugHelper::arrayToString(
+            \array_map(
+                static function (Column $column) {
+                    return $column->getName() . ':' . $column->getType();
+                },
+                $this->columns
+            )
+        );
     }
 }

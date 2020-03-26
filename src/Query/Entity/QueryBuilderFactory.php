@@ -2,25 +2,36 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Query;
+namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Repository;
+use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Query\QueryError;
+use Goat\Runner\Runner;
 
-class EntityQueryBuilder
+class QueryBuilderFactory
 {
+    /** @var DefinitionRegistry */
+    private $definitionRegistry;
+
     /** @var EntityHydratorFactory */
     private $entityHydratorFactory;
 
-    /** @var Repository */
-    private $repository;
+    /** @var RelationQueryBuilder */
+    private $relationQueryBuilder;
 
-    public function __construct(Repository $repository, EntityHydratorFactory $entityHydratorFactory)
-    {
-        $this->repository = $repository;
+    /** @var Runner */
+    private $runner;
+
+    public function __construct(
+        Runner $runner,
+        DefinitionRegistry $definitionRegistry,
+        EntityHydratorFactory $entityHydratorFactory
+    ) {
+        $this->runner = $runner;
+        $this->definitionRegistry = $definitionRegistry;
         $this->entityHydratorFactory = $entityHydratorFactory;
     }
 
@@ -47,9 +58,7 @@ class EntityQueryBuilder
      */
     public static function expandKey(Key $key, $id, ?string $tableOrAlias = null): array
     {
-        if (!$id instanceof Identifier) {
-            $id = new Identifier(\is_array($id) ? [$id] : $id);
-        }
+        $id = Identifier::normalize($id);
 
         if (!$id->isCompatible($key)) {
             throw new QueryError(\sprintf(
@@ -78,18 +87,40 @@ class EntityQueryBuilder
     }
 
     /**
+     * Get relation query builder
+     */
+    public function relation(): RelationQueryBuilder
+    {
+        return $this->relationQueryBuilder ?? (
+            $this->relationQueryBuilder = $this->createRelationQueryBuilder()
+        );
+    }
+
+    /**
      * Create and get a SELECT query builder for this repository.
      */
-    public function fetch(?string $primaryTableAlias = null): EntityFetchQueryBuilder
+    public function select(string $className, ?string $primaryTableAlias = null): EntitySelectQuery
     {
-        return new EntityFetchQueryBuilder($this->entityHydratorFactory, $this->repository, $primaryTableAlias);
+        return new EntitySelectQuery(
+            $this->runner,
+            $this->definitionRegistry,
+            $this->entityHydratorFactory,
+            $this->relation(),
+            $className,
+            $primaryTableAlias
+        );
     }
 
     /**
      * Create and get an UPDATE query builder for this repository.
      */
-    public function update(): EntityUpdateQueryBuilder
+    public function update(string $className): EntityUpdateQueryBuilder
     {
-        return new EntityUpdateQueryBuilder($this->repository);
+        throw new \Exception("Not implemented yet.");
+    }
+
+    private function createRelationQueryBuilder(): RelationQueryBuilder
+    {
+        return new RelationQueryBuilder($this->definitionRegistry, $this);
     }
 }

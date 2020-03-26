@@ -33,10 +33,29 @@ use Ramsey\Uuid\UuidInterface;
                     'mode' => 'one_to_many',
                     'key_in' => 'target',
                     'target_key' => [
-                        'id' => 'uuid',
+                        'target_id' => 'uuid',
                     ],
                 ],
             ],
+        ];
+    }
+
+    public static function toTableSchema(): array
+    {
+        return [
+            'pgsql' => <<<SQL
+CREATE TABLE to_many_in_target (
+    id UUID NOT NULL,
+    PRIMARY KEY (id)
+)
+SQL
+            ,
+            'mysql' => <<<SQL
+CREATE TABLE to_many_in_target (
+    id VARCHAR(36) NOT NULL,
+    PRIMARY KEY (id)
+)
+SQL
         ];
     }
 

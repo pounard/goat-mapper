@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper;
+namespace Goat\Mapper\Repository;
 
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\EntityDoesNotExistError;
-use Goat\Mapper\Query\EntityQueryBuilder;
+use Goat\Mapper\Query\Entity\EntitySelectQuery;
+use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Runner\Runner;
 
 /**
@@ -57,16 +58,26 @@ class DefaultRepository implements Repository
     public final function getRelatedRepository(string $relation): Repository
     {
         return $this->manager->getRepository(
-            $this->definition->getRelation($relation)->getClassName()
+            $this
+                ->definition
+                ->getRelation($relation)
+                ->getClassName()
         );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function query(): EntityQueryBuilder
+    public function fetch(?string $primaryTableAlias = null): EntitySelectQuery
     {
-        return $this->manager->createEntityQueryBuilder($this->className);
+        return $this
+            ->manager
+            ->getQueryBuilderFactory()
+            ->select(
+                $this->className,
+                $primaryTableAlias
+            )
+        ;
     }
 
     /**
@@ -74,9 +85,9 @@ class DefaultRepository implements Repository
      */
     public function findOne($id)
     {
-        $query = $this->query()->fetch();
+        $query = $this->fetch();
 
-        $expandedId = EntityQueryBuilder::expandKey(
+        $expandedId = QueryBuilderFactory::expandKey(
             $this->definition->getPrimaryKey(),
             $id,
             $query->getPrimaryTableAlias()

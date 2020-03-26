@@ -4,25 +4,21 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Test\Query\EntityFetchQueryBuilder;
 
-use Goat\Mapper\Tests\RepositoryTestTrait;
+use Goat\Mapper\Tests\AbstractRepositoryTest;
 use Goat\Mapper\Tests\Mock\WithoutRelation;
 use Goat\Query\Expression;
 use Goat\Query\ExpressionRaw;
 use Goat\Query\SelectQuery;
-use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 
-final class SelectTest extends TestCase
+final class SelectTest extends AbstractRepositoryTest
 {
-    use RepositoryTestTrait;
-
     public function testConditionWithExistingColumnInKey(): void
     {
         $manager = $this->createRepositoryManager();
         $repository = $manager->getRepository(WithoutRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch()
             ->condition('id', Uuid::uuid4())
             ->build()
@@ -47,7 +43,6 @@ SQL,
         $repository = $manager->getRepository(WithoutRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch()
             ->condition('value', 'foo')
             ->build()
@@ -72,7 +67,6 @@ SQL,
         $repository = $manager->getRepository(WithoutRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch()
             ->condition('some_other', 'foo')
             ->build()
@@ -103,7 +97,6 @@ SQL,
         $repository = $manager->getRepository(WithoutRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch()
             ->condition(ExpressionRaw::create("bouh is true"))
             ->build()
@@ -128,7 +121,6 @@ SQL,
         $repository = $manager->getRepository(WithoutRelation::class);
 
         $query = $repository
-            ->query()
             ->fetch()
             ->build()
         ;

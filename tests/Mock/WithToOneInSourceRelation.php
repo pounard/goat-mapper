@@ -12,7 +12,7 @@ use Ramsey\Uuid\UuidInterface;
     /** @var UuidInterface */
     private $id;
 
-    /** @var null|WithoutRelation */
+    /** @var null|WithToOneInTargetRelation */
     private $relatedEntity;
 
     public static function toDefinitionArray(): array
@@ -28,9 +28,9 @@ use Ramsey\Uuid\UuidInterface;
             ],
             'relations' => [
                 [
-                    'class_name' => WithoutRelation::class,
+                    'class_name' => WithToOneInTargetRelation::class,
                     'property_name' => 'relatedEntity',
-                    'table' => 'without_relation',
+                    'table' => 'to_one_in_target',
                     'mode' => 'one_to_one',
                     'key_in' => 'source',
                     'target_key' => [
@@ -44,12 +44,39 @@ use Ramsey\Uuid\UuidInterface;
         ];
     }
 
+    public static function toTableSchema(): array
+    {
+        return [
+            'pgsql' => <<<SQL
+CREATE TABLE to_one_in_source (
+    id UUID NOT NULL,
+    target_id UUID DEFAULT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (target_id)
+        REFERENCES to_one_in_target (id)
+        ON DELETE SET NULL
+)
+SQL
+            ,
+            'mysql' => <<<SQL
+CREATE TABLE to_one_in_source (
+    id VARCHAR(36) NOT NULL,
+    target_id VARCHAR(36) DEFAULT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (target_id)
+        REFERENCES to_one_in_target (id)
+        ON DELETE SET NULL
+)
+SQL
+        ];
+    }
+
     public function getId(): UuidInterface
     {
         return $this->id ?? ($this->id = Uuid::uuid4());
     }
 
-    public function getRelatedEntity(): ?WithoutRelation
+    public function getRelatedEntity(): ?WithToOneInTargetRelation
     {
         return $this->relatedEntity;
     }

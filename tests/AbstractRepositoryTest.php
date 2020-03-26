@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
-use Goat\Mapper\DefaultRepositoryManager;
-use Goat\Mapper\RepositoryManager;
 use Goat\Mapper\Definition\ArrayDefinitionRegistry;
 use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
 use Goat\Mapper\Hydration\HydratorRegistry\HydratorRegistry;
 use Goat\Mapper\Hydration\Proxy\ProxyFactory;
+use Goat\Mapper\Repository\DefaultRepositoryManager;
+use Goat\Mapper\Repository\RepositoryManager;
 use Goat\Mapper\Tests\Mock\WithMultipleColumnPrimaryKey;
 use Goat\Mapper\Tests\Mock\WithToManyInMappingRelation;
 use Goat\Mapper\Tests\Mock\WithToManyInTargetRelation;
@@ -22,15 +22,16 @@ use Goat\Mapper\Tests\Mock\WithToOneInTargetRelation;
 use Goat\Mapper\Tests\Mock\WithoutRelation;
 use Goat\Query\Query;
 use Goat\Runner\Runner;
+use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Goat\Runner\Testing\NullRunner;
 use ProxyManager\Configuration as ProxyManagerConfiguration;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
 use ProxyManager\FileLocator\FileLocator;
 use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
 
-trait RepositoryTestTrait
+abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 {
-    protected static function assertSameSql($expected, $actual, string $message = null): void
+    final protected static function assertSameSql($expected, $actual, string $message = null): void
     {
         $formatter = (new NullRunner())->getFormatter();
 
@@ -55,6 +56,20 @@ trait RepositoryTestTrait
         }
     }
 
+    final public static function getTestEntityClasses(): array
+    {
+        // Order is important, because of key constraints.
+        return [
+            WithMultipleColumnPrimaryKey::class,
+            WithoutRelation::class,
+            WithToManyInMappingRelation::class,
+            WithToManyInTargetRelation::class,
+            WithToOneInMappingRelation::class,
+            WithToOneInTargetRelation::class,
+            WithToOneInSourceRelation::class,
+        ];
+    }
+
     private static function normalizeSqlString(string $string): string
     {
         $string = \preg_replace('@\s*(\(|\))\s*@ms', '$1', $string);
@@ -64,6 +79,37 @@ trait RepositoryTestTrait
         $string = \trim($string);
 
         return $string;
+    }
+
+    final protected function createEntityHydratorFactory(): EntityHydratorFactory
+    {
+        return new EntityHydratorFactory(
+            $this->createDefinitionRegistry(),
+            $this->createHydratorRegistry(),
+            $this->createProxyFactory()
+        );
+    }
+
+    final protected function createRepositoryManager(?Runner $runner = null): RepositoryManager
+    {
+        return new DefaultRepositoryManager(
+            $runner ?? new NullRunner(),
+            $this->createDefinitionRegistry(),
+            $this->createEntityHydratorFactory()
+        );
+    }
+
+    final protected function createSchema(Runner $runner): void
+    {
+        $driverName = $runner->getDriverName();
+
+        foreach (self::getTestEntityClasses() as $className) {
+            $tables = \call_user_func([$className, 'toTableSchema']);
+
+            $createTableStatement = $tables[$driverName] ?? $tables['default'];
+
+            $runner->execute($createTableStatement);
+        }
     }
 
     private function createHydratorRegistry(): HydratorRegistry
@@ -96,38 +142,13 @@ trait RepositoryTestTrait
         );
     }
 
-    private function createEntityHydratorFactory(): EntityHydratorFactory
-    {
-        return new EntityHydratorFactory(
-            $this->createHydratorRegistry(),
-            $this->createProxyFactory()
-        );
-    }
-
     private function createDefinitionRegistry(): DefinitionRegistry
     {
-        return new ArrayDefinitionRegistry([
-            WithMultipleColumnPrimaryKey::class => WithMultipleColumnPrimaryKey::toDefinitionArray(),
-            WithoutRelation::class => WithoutRelation::toDefinitionArray(),
-            WithToManyInMappingRelation::class => WithToManyInMappingRelation::toDefinitionArray(),
-            WithToManyInTargetRelation::class => WithToManyInTargetRelation::toDefinitionArray(),
-            WithToOneInMappingRelation::class => WithToOneInMappingRelation::toDefinitionArray(),
-            WithToOneInSourceRelation::class => WithToOneInSourceRelation::toDefinitionArray(),
-            WithToOneInTargetRelation::class => WithToOneInTargetRelation::toDefinitionArray(),
-        ]);
-    }
+        $userDefinition = [];
+        foreach (self::getTestEntityClasses() as $className) {
+            $userDefinition[$className] = \call_user_func([$className, 'toDefinitionArray']);
+        }
 
-    private function createRunner(): Runner
-    {
-        return new NullRunner();
-    }
-
-    private function createRepositoryManager(): RepositoryManager
-    {
-        return new DefaultRepositoryManager(
-            $this->createRunner(),
-            $this->createDefinitionRegistry(),
-            $this->createEntityHydratorFactory()
-        );
+        return new ArrayDefinitionRegistry($userDefinition);
     }
 }

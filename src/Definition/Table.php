@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition;
 
-class Table
+class Table implements Debuggable
 {
     /** @var string */
     private $name;
@@ -28,6 +28,9 @@ class Table
         return $this->schema;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toString(): string
     {
         if ($this->schema) {

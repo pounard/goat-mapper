@@ -29,6 +29,27 @@ use Ramsey\Uuid\Uuid;
         ];
     }
 
+    public static function toTableSchema(): array
+    {
+        return [
+            'pgsql' => <<<SQL
+CREATE TABLE without_relation (
+    id UUID NOT NULL,
+    value TEXT DEFAULT NULL
+    PRIMARY KEY (id)
+)
+SQL
+            ,
+            'mysql' => <<<SQL
+CREATE TABLE without_relation (
+    id VARCHAR(36) NOT NULL,
+    value TEXT DEFAULT NULL
+    PRIMARY KEY (id)
+)
+SQL
+        ];
+    }
+
     public function getId(): UuidInterface
     {
         return $this->id ?? ($this->id = Uuid::uuid4());

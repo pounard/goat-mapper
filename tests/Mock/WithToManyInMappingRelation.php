@@ -40,6 +40,25 @@ use Ramsey\Uuid\UuidInterface;
         ];
     }
 
+    public static function toTableSchema(): array
+    {
+        return [
+            'pgsql' => <<<SQL
+CREATE TABLE to_many_in_mapping (
+    id UUID NOT NULL,
+    PRIMARY KEY (id)
+)
+SQL
+            ,
+            'mysql' => <<<SQL
+CREATE TABLE to_many_in_mapping (
+    id VARCHAR(36) NOT NULL,
+    PRIMARY KEY (id)
+)
+SQL
+        ];
+    }
+
     public function getId(): UuidInterface
     {
         return $this->id ?? ($this->id = Uuid::uuid4());
