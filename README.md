@@ -41,9 +41,8 @@ Here is a nice todolist of what's missing:
 
 Priority 0, we need it ASAP:
 
- - [ ] handle null references when lazy loading any to one relationship,
-   as of today, a virtual proxy is used, but it'll crash if loaded reference
-   is null,
+ - [x] work around handle null references when lazy loading any to one
+   relationship: done by forcing join based eager load for to one,
 
  - [x] make lazy collections rewindable, seriously,
 
@@ -94,5 +93,11 @@ Priority 2, industrialisation:
  - [ ] documentation.
 
 Priority 3, for later:
+
+ - [ ] handle null references when lazy loading any to one relationship,
+   as of today, a virtual proxy is used, but it'll crash if loaded reference
+   is null,
+
+ - [ ] EXISTS/CTE optimisations for lazy loading,
 
  - [ ] implement update, delete and insert helpers.

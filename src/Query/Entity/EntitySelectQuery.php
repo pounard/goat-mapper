@@ -96,6 +96,29 @@ class EntitySelectQuery
     }
 
     /**
+     * Because there is no really easy way to implement a smart-reference
+     * value proxy for to-one relationships:
+     *    https://github.com/Ocramius/ProxyManager/blob/master/docs/access-interceptor-scope-localizer.md
+     *    https://github.com/Ocramius/ProxyManager/blob/master/docs/access-interceptor-value-holder.md
+     * as a workaround, we will eargly load all to-one relationships per
+     * default so that the user will not encounter the bug when handling
+     * null values for to one relationships.
+     */
+    private static $doForceAllEagerRelationsToLoad = true;
+
+    /**
+     * @internal
+     *   For unit testing purpose only, DO NOT USE THIS.
+     */
+    public static function doForceAllEagerRelationsToLoad(bool $toggle): bool
+    {
+        $previous = self::$doForceAllEagerRelationsToLoad;
+        self::$doForceAllEagerRelationsToLoad = $toggle;
+
+        return $previous;
+    }
+
+    /**
      * Force a relation values to be loaded eargly:
      *
      *   - if relation is one to one or many to one, a simple JOIN on the select
@@ -367,7 +390,9 @@ class EntitySelectQuery
             foreach ($this->definition->getRelations() as $relation) {
                 $propertyName = $relation->getPropertyName();
 
-                if ($this->eagerRelations[$propertyName] ?? false) {
+                if (self::$doForceAllEagerRelationsToLoad && !$relation->isMultiple()) {
+                    $this->handleEagerRelation($query, $relation);
+                } else if ($this->eagerRelations[$propertyName] ?? false) {
                     $this->handleEagerRelation($query, $relation);
                 } else {
                     $context->lazyPropertyNames[] = $propertyName;

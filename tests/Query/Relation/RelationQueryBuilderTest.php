@@ -6,12 +6,25 @@ namespace Goat\Mapper\Test\Query\Relation;
 
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Error\QueryError;
+use Goat\Mapper\Query\Entity\EntitySelectQuery;
 use Goat\Mapper\Tests\AbstractRepositoryTest;
 use Goat\Mapper\Tests\Mock\WithToOneInSourceRelation;
 use Goat\Mapper\Tests\Mock\WithToOneInTargetRelation;
 
 final class RelationQueryBuilderTest extends AbstractRepositoryTest
 {
+    private $previous;
+
+    protected function setUp()
+    {
+        $this->previous = EntitySelectQuery::doForceAllEagerRelationsToLoad(false);
+    }
+
+    protected function tearDown()
+    {
+        EntitySelectQuery::doForceAllEagerRelationsToLoad($this->previous ?? true);
+    }
+
     public function testKeyWithIdentifierMismatchRaiseError(): void
     {
         $manager = $this->createRepositoryManager();

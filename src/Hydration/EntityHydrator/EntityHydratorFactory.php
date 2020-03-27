@@ -74,9 +74,11 @@ class EntityHydratorFactory
             } else {
                 // For lazy one to one properties, we create a ghost proxy
                 // that will lazy load your object upon method access.
+                // @todo For now, don't use this, always do eager whenever possible
                 // @todo Handle SQL EXISTS optimisation.
                 // @todo Use a ghost proxy instead?
                 // @todo We do create a ghost whereas the result could return null, this is WRONG.
+                //   https://github.com/Ocramius/ProxyManager/blob/master/docs/lazy-loading-ghost-object.md
                 $lazyProperties[$propertyName] = function (Identifier $id) use ($context, $relation, $propertyName) {
                     return $this->proxyFactory->getProxy(
                         $relation->getClassName(),
