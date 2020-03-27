@@ -6,7 +6,9 @@ namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
 use Goat\Mapper\Definition\Registry\ArrayDefinitionRegistry;
+use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
+use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
 use Goat\Mapper\Hydration\HydratorRegistry\HydratorRegistry;
@@ -144,11 +146,16 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 
     private function createDefinitionRegistry(): DefinitionRegistry
     {
-        $userDefinition = [];
+        $userArrayData = [];
         foreach (self::getTestEntityClasses() as $className) {
-            $userDefinition[$className] = \call_user_func([$className, 'toDefinitionArray']);
+            if (\method_exists($className, 'toDefinitionArray')) {
+                $userArrayData[$className] = \call_user_func([$className, 'toDefinitionArray']);
+            }
         }
 
-        return new ArrayDefinitionRegistry($userDefinition);
+        return new ChainDefinitionRegistry([
+            new StaticEntityDefinitionRegistry(),
+            new ArrayDefinitionRegistry($userArrayData),
+        ]);
     }
 }

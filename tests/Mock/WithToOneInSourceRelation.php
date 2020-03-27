@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Tests\Mock;
 
+use Goat\Mapper\Definition\Builder\DefinitionBuilder;
+use Goat\Mapper\Definition\Registry\StaticEntityDefinition;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-/* final */ class WithToOneInSourceRelation
+/* final */ class WithToOneInSourceRelation implements StaticEntityDefinition
 {
     /** @var UuidInterface */
     private $id;
@@ -15,6 +17,26 @@ use Ramsey\Uuid\UuidInterface;
     /** @var null|WithToOneInTargetRelation */
     private $relatedEntity;
 
+    public static function defineEntity(DefinitionBuilder $builder): void
+    {
+        $builder->setTableName('to_one_in_source', 'public');
+        $builder->addProperty('id');
+        $builder->addProperty('targetId', 'target_id');
+        $builder->setPrimaryKey([
+            'id' => 'uuid',
+        ]);
+        $relation = $builder->addOneToOneRelation('relatedEntity', WithToOneInTargetRelation::class);
+        $relation->setTargetTableName('to_one_in_target', 'public');
+        $relation->keyIsInSourceTable();
+        $relation->setTargetKey([
+            'id' => 'uuid',
+        ]);
+        $relation->setSourceKey([
+            'target_id' => 'uuid',
+        ]);
+    }
+
+    /*
     public static function toDefinitionArray(): array
     {
         return [
@@ -43,6 +65,7 @@ use Ramsey\Uuid\UuidInterface;
             ],
         ];
     }
+     */
 
     public static function toTableSchema(): array
     {

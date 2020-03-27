@@ -11,7 +11,6 @@ use Goat\Mapper\Definition\Relation;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Definition\Table;
 use Goat\Mapper\Error\InvalidRepositoryDefinitionError;
-use Goat\Mapper\Error\RepositoryDoesNotExistError;
 
 /**
  * Array specification for input:
@@ -53,6 +52,8 @@ use Goat\Mapper\Error\RepositoryDoesNotExistError;
  */
 class ArrayDefinitionRegistry implements DefinitionRegistry
 {
+    use DefinitionRegistryTrait;
+
     /** @var ?string */
     private $defaultSchema = 'public';
 
@@ -196,9 +197,8 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         if (!\class_exists($className) && !\interface_exists($className)) {
             throw new InvalidRepositoryDefinitionError(\sprintf("Class or interface %s does not exists.", $className));
         }
-
         if (!isset($this->userData[$className])) {
-            throw new RepositoryDoesNotExistError(\sprintf("There is no known registery for class %s.", $className));
+            $this->repositoryDoesNotExist($className);
         }
         $input = $this->userData[$className];
 

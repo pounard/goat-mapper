@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Goat\Mapper\Tests\Mock;
 
 use Goat\Mapper\Definition\Builder\DefinitionBuilder;
-use Goat\Mapper\Entity\SelfDefinedEntity;
+use Goat\Mapper\Definition\Registry\StaticEntityDefinition;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-/* final */ class WithoutRelation implements SelfDefinedEntity
+/* final */ class WithoutRelation implements StaticEntityDefinition
 {
     /** @var UuidInterface */
     private $id;
@@ -19,7 +19,7 @@ use Ramsey\Uuid\UuidInterface;
 
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('without_relation');
+        $builder->setTableName('without_relation', 'public');
         $builder->addProperty('id');
         $builder->addProperty('value');
         $builder->setPrimaryKey([
@@ -27,6 +27,7 @@ use Ramsey\Uuid\UuidInterface;
         ]);
     }
 
+    /*
     public static function toDefinitionArray(): array
     {
         return [
@@ -40,6 +41,7 @@ use Ramsey\Uuid\UuidInterface;
             ],
         ];
     }
+     */
 
     public static function toTableSchema(): array
     {

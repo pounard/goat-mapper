@@ -77,6 +77,8 @@ Priority 1, we need it before being able to use it:
 
 Priority 2, industrialisation:
 
+ - [x] implement chain definition registry
+
  - [x] implement PHP driven configuration using a pattern builder,
 
  - [ ] implement SQL schema parsing auto configuration (from SQL to PHP class),

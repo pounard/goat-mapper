@@ -155,7 +155,7 @@ final class RelationDefinitionBuilder
     {
         $this->ensureKeyIsValid($propertyTypeMap);
 
-        $this->targetKey = $propertyTypeMap;
+        $this->sourceKey = $propertyTypeMap;
     }
 
     private function compileTargetTable(): Table
