@@ -37,6 +37,20 @@ Now it has some problems, let's be honest, if you need an ORM, use Doctrine,
 don't come and report be any bugs, it will NEVER be as powerful as other
 complete and mature solutions are such as the Doctrine ORM.
 
+# Installation
+
+@todo I need to write this.
+
+# Standalone setup
+
+@todo I need to write this.
+
+# Symfony setup
+
+@todo I need to write this.
+
+# Roadmap
+
 Here is a nice todolist of what's missing:
 
 Priority 0, we need it ASAP:
@@ -53,10 +67,8 @@ Priority 0, we need it ASAP:
    classes and call the builder if necessary (using the entity self-defining
    interface),
 
- - [ ] write a cache implementation for the finder API,
-
  - [ ] implement functionnal tests with a real SQL backend behind (right now
-   only SQL generation is tested).
+   only SQL generation is tested),
 
 Priority 1, we need it before being able to use it:
 
@@ -76,7 +88,9 @@ Priority 1, we need it before being able to use it:
    that populate an internal array over first iteration maybe, to keep them
    fully lazy),
 
- - [ ] allow custom repositories to be used instead of the default one. 
+ - [ ] allow custom repositories to be used instead of the default one,
+
+ - [ ] write a basic symfony bundle.
 
 Priority 2, industrialisation:
 
@@ -86,9 +100,9 @@ Priority 2, industrialisation:
 
  - [ ] implement SQL schema parsing auto configuration (from SQL to PHP class),
 
- - [ ] implement yaml/annotation driven configuration (from PHP class to SQL);
+ - [ ] implement yaml/annotation driven configuration (from PHP class to SQL),
 
- - [ ] implement a Symfony bundle,
+ - [ ] stabilise the symfony bundle and make it highly customizable,
 
  - [ ] documentation.
 
