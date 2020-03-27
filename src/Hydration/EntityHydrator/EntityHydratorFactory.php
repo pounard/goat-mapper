@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Hydration\EntityHydrator;
 
-use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Definition\Identifier;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Hydration\HydratorRegistry\HydratorRegistry;
 use Goat\Mapper\Hydration\Proxy\ProxyFactory;
 

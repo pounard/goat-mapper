@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Key;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Query\QueryError;
 use Goat\Runner\Runner;

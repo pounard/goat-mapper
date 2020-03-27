@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Repository;
 
-use Goat\Mapper\Definition\DefinitionRegistry;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\RepositoryDoesNotExistError;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;

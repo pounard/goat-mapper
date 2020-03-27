@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
-use Goat\Mapper\Definition\ArrayDefinitionRegistry;
-use Goat\Mapper\Definition\DefinitionRegistry;
+use Goat\Mapper\Definition\Registry\ArrayDefinitionRegistry;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
 use Goat\Mapper\Hydration\HydratorRegistry\HydratorRegistry;

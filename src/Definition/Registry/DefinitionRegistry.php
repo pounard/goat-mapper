@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Definition;
+namespace Goat\Mapper\Definition\Registry;
 
+use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\InvalidRepositoryDefinitionError;
 
 /**

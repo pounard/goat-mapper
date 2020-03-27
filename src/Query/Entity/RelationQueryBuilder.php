@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Definition\Relation;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 
 final class RelationQueryBuilder
 {

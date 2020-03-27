@@ -2,8 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Definition;
+namespace Goat\Mapper\Definition\Registry;
 
+use Goat\Mapper\Definition\Column;
+use Goat\Mapper\Definition\Key;
+use Goat\Mapper\Definition\PrimaryKey;
+use Goat\Mapper\Definition\Relation;
+use Goat\Mapper\Definition\RepositoryDefinition;
+use Goat\Mapper\Definition\Table;
 use Goat\Mapper\Error\InvalidRepositoryDefinitionError;
 use Goat\Mapper\Error\RepositoryDoesNotExistError;
 

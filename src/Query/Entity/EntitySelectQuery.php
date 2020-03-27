@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Definition\DefinitionRegistry;
 use Goat\Mapper\Definition\Relation;
 use Goat\Mapper\Definition\RepositoryDefinition;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\PropertyDoesNotExistError;
 use Goat\Mapper\Error\PropertyError;
 use Goat\Mapper\Error\QueryError;
