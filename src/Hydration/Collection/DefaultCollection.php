@@ -12,15 +12,23 @@ final class DefaultCollection extends AbstractCollection
     /** @var null|callable */
     private $initializer = null;
 
+    /** @var bool */
+    private $forceRewindable = true;
+
     /**
      * @param iterable<T>|callable<T> $initializer
      */
-    public function __construct($initializer, ?int $count = null)
+    public function __construct($initializer, ?int $count = null, bool $forceRewindable = true)
     {
-        $values = null;
+        $this->forceRewindable = $forceRewindable;
 
+        $values = null;
         if (\is_iterable($initializer)) {
-            $values = $initializer;
+            if ($this->forceRewindable) {
+                $values = $this->makeItRewindable($initializer);
+            } else {
+                $values = $initializer;
+            }
         } else if (\is_callable($initializer)) {
             $this->initializer = $initializer;
         } else {
@@ -28,6 +36,16 @@ final class DefaultCollection extends AbstractCollection
         }
 
         parent::__construct($values, $count);
+    }
+
+    private function makeItRewindable(iterable $values): iterable
+    {
+        // Poor's man rewindable maker.
+        // @todo There's probably a much smarter way to do this.
+        if (!\is_array($values)) {
+            return \iterator_to_array($values);
+        }
+        return $values;
     }
 
     /**
@@ -46,7 +64,12 @@ final class DefaultCollection extends AbstractCollection
                 $this->setCount($count);
             }
 
-            return $ret->getValues();
+            $values = $ret->getValues();
+            if ($this->forceRewindable) {
+                return $this->makeItRewindable($values);
+            }
+
+            return $values;
         }
 
         if (!\is_iterable($ret)) {

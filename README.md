@@ -45,7 +45,7 @@ Priority 0, we need it ASAP:
    as of today, a virtual proxy is used, but it'll crash if loaded reference
    is null,
 
- - [ ] make lazy collections rewindable, seriously,
+ - [x] make lazy collections rewindable, seriously,
 
  - [ ] implement the N+1 bulk lazy load solution for large result sets with
    any to many collection,
@@ -72,6 +72,10 @@ Priority 1, we need it before being able to use it:
  - [ ] add finder in builder to ensure relation target repositories are created
    or exist when adding new relations, make it lazy with a link resolution phase
    if necessary (handle potential circular references),
+
+ - [ ] make the rewindable collections much smarter (create a new iterator impl
+   that populate an internal array over first iteration maybe, to keep them
+   fully lazy),
 
  - [ ] allow custom repositories to be used instead of the default one. 
 
