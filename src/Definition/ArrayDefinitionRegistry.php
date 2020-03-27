@@ -65,7 +65,7 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
     /**
      * {@inheritdoc}
      */
-    public function getRepositoryDefinition(string $className): RepositoryDefinition
+    public function getDefinition(string $className): RepositoryDefinition
     {
         return $this->repositories[$className] ?? (
             $this->repositories[$className] = $this->createRepositoryDefinition($className)
@@ -204,10 +204,8 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         $primaryKey = new PrimaryKey($this->parseColumnArray($input['primary_key'] ?? []));
 
         return new RepositoryDefinition(
-            new EntityDefinition(
-                $className,
-                $this->parseKeyValueArray($input['columns'] ?? [])
-            ),
+            $className,
+            $this->parseKeyValueArray($input['columns'] ?? []),
             $table,
             $primaryKey,
             $this->parseRelationArray($input['relations'] ?? [], $table, $primaryKey)

@@ -75,7 +75,7 @@ class DefaultRepositoryManager implements RepositoryManager
     {
         // @todo Make it pluggage for custom implementation.
         return new DefaultRepository(
-            $this->definitionRegistry->getRepositoryDefinition($className),
+            $this->definitionRegistry->getDefinition($className),
             $this
         );
     }

@@ -23,7 +23,7 @@ interface Repository
     /**
      * Get repository definition.
      */
-    public function getRepositoryDefinition(): RepositoryDefinition;
+    public function getDefinition(): RepositoryDefinition;
 
     /**
      * Get repository for relation

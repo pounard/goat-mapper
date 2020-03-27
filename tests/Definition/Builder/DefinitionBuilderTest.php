@@ -57,7 +57,7 @@ final class DefinitionBuilderTest extends TestCase
                 'someProperty' => 'some_property',
                 'bla' => 'bla',
             ],
-            $definition->getEntityDefinition()->getColumnMap()
+            $definition->getColumnMap()
         );
     }
 

@@ -7,7 +7,7 @@ namespace Goat\Mapper\Definition\Builder;
 use Goat\Mapper\Definition\RepositoryDefinition;
 
 /**
- * Create definition for an entity.
+ * Definition finder is the runtime definition generator.
  */
 interface DefinitionFinder
 {

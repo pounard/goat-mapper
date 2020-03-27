@@ -89,7 +89,7 @@ class EntitySelectQuery
         $this->runner = $runner;
         $this->className = $className;
         $this->definitionRegistry = $definitionRegistry;
-        $this->definition = $definitionRegistry->getRepositoryDefinition($className);
+        $this->definition = $definitionRegistry->getDefinition($className);
         $this->entityHydratorFactory = $entityHydratorFactory;
         $this->relationQueryBuilder = $relationQueryBuilder;
         $this->primaryTableAlias = $this->getNextAlias($primaryTableAlias ?? $this->definition->getTable()->getName());
@@ -224,7 +224,7 @@ class EntitySelectQuery
     public function condition($propertyNameOrCallack, $value = null): self
     {
         if (\is_string($propertyNameOrCallack)) {
-            if ($columnName = $this->definition->findColumnName($propertyNameOrCallack)) {
+            if ($columnName = $this->definition->getColumn($propertyNameOrCallack)) {
                 $propertyNameOrCallack = ExpressionColumn::create($columnName, $this->primaryTableAlias);
             }
         }
@@ -252,19 +252,18 @@ class EntitySelectQuery
      */
     private function addEntityColumns(SelectQuery $query, string $className, string $tableAlias, ?string $propertyName = null): void
     {
-        $targetEntityDefinition = $this
+        $targetDefinition = $this
             ->definitionRegistry
-            ->getRepositoryDefinition(
+            ->getDefinition(
                 $className
             )
-            ->getEntityDefinition()
         ;
 
         // Add related object columns to SELECT clause. They will be prefixed
         // using the property name and a dot, which will allow the custom
         // hydrator to handled nested objects hydration.
         // @todo make the nested hydrator really lazy using a proxy object.
-        if ($columns = $targetEntityDefinition->getColumnMap()) {
+        if ($columns = $targetDefinition->getColumnMap()) {
             foreach ($columns as $targetPropertyName => $columName) {
                 $query->column(
                     ExpressionColumn::create($columName, $tableAlias),

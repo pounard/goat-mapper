@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition\Builder;
 
-use Goat\Mapper\Definition\EntityDefinition;
 use Goat\Mapper\Definition\Relation;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Definition\Table;
@@ -142,14 +141,6 @@ final class DefinitionBuilder
         return $this->createRelationBuilder($propertyName, $className, Relation::MODE_MANY_TO_MANY);
     }
 
-    private function compileEntityDefinition(): EntityDefinition
-    {
-        return new EntityDefinition(
-            $this->className,
-            $this->columnMap
-        );
-    }
-
     private function compilePrimaryKey(): PrimaryKey
     {
         return $this->primaryKey ?? (
@@ -186,7 +177,8 @@ final class DefinitionBuilder
     public function compile()
     {
         return new RepositoryDefinition(
-            $this->compileEntityDefinition(),
+            $this->className,
+            $this->columnMap,
             $this->compileTable(),
             $this->compilePrimaryKey(),
             $this->compileRelations(),

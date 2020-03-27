@@ -34,7 +34,7 @@ final class RelationQueryBuilder
 
         $relation = $this
             ->definitionRegistry
-            ->getRepositoryDefinition($className)
+            ->getDefinition($className)
             ->getRelation($propertyName)
         ;
 

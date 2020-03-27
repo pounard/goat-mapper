@@ -40,7 +40,7 @@ class EntityHydratorFactory
     {
         $definition = $this
             ->definitionRegistry
-            ->getRepositoryDefinition(
+            ->getDefinition(
                 $context->className
             )
         ;

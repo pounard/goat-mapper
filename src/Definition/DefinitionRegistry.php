@@ -18,5 +18,5 @@ interface DefinitionRegistry
     /**
      * @throws InvalidRepositoryDefinitionError
      */
-    public function getRepositoryDefinition(string $className): RepositoryDefinition;
+    public function getDefinition(string $className): RepositoryDefinition;
 }

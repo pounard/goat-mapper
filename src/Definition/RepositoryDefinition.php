@@ -18,8 +18,8 @@ class RepositoryDefinition
     /** @var string */
     private $className;
 
-    /** @var EntityDefinition */
-    private $entityDefinition;
+    /** @var array<string,string> */
+    private $columnMap = [];
 
     /** @var Table */
     private $table;
@@ -36,10 +36,14 @@ class RepositoryDefinition
      */
     private $relationClassNameMap = [];
 
-    /** @param Relation[] $relations */
-    public function __construct(EntityDefinition $entityDefinition, Table $table, PrimaryKey $primaryKey, array $relations = [])
+    /**
+     * @param Relation[] $relations
+     * @param array<string,string> $columnMap
+     */
+    public function __construct(string $className, array $columnMap = [], Table $table, PrimaryKey $primaryKey, array $relations = [])
     {
-        $this->entityDefinition = $entityDefinition;
+        $this->className = $className;
+        $this->columnMap = $columnMap;
         $this->primaryKey = $primaryKey;
         $this->table = $table;
 
@@ -57,9 +61,43 @@ class RepositoryDefinition
         }
     }
 
-    public function getEntityDefinition(): EntityDefinition
+    public function getClassName(): string
     {
-        return $this->entityDefinition;
+        return $this->className;
+    }
+
+    /**
+     * Get property name list
+     *
+     * @return string[]
+     */
+    public function getPropertyNames(): array
+    {
+        return \array_keys($this->columnMap);
+    }
+
+    /**
+     * Find appropriate column name for given property name.
+     *
+     * If nothing found, it returns null, in opposition to relation, it is a
+     * non-blocking error not being able to find a property, SQL query builder
+     * will pass on the user-provided arbitrary column name that might exist in
+     * schema while not being an entity-defined property.
+     */
+    public function getColumn(string $propertyName): ?string
+    {
+        return $this->columnMap[$propertyName] ?? null;
+    }
+
+    /**
+     * Get property column map
+     *
+     * @return array<string,string>
+     *   Keys are property names, values are columns.
+     */
+    public function getColumnMap(): array
+    {
+        return $this->columnMap;
     }
 
     public function getTable(): Table
@@ -101,19 +139,6 @@ class RepositoryDefinition
         return $this->relations[$propertyOrClassName] ?? $this->findRelationWithClass($propertyOrClassName);
     }
 
-    /**
-     * Find appropriate column name for given property name.
-     *
-     * If nothing found, it returns null, in opposition to relation, it is a
-     * non-blocking error not being able to find a property, SQL query builder
-     * will pass on the user-provided arbitrary column name that might exist in
-     * schema while not being an entity-defined property.
-     */
-    public function findColumnName(string $propertyName): ?string
-    {
-        return $this->entityDefinition->getColumn($propertyName);
-    }
-
     private function findRelationWithClass(string $className): Relation
     {
         if ($relations = $this->relationClassNameMap[$className] ?? null) {
@@ -134,7 +159,7 @@ class RepositoryDefinition
     {
         throw new \InvalidArgumentException(\sprintf(
             "Repository for %s has no relation with '%s' target class name or entity property name.",
-            $this->entityDefinition->getClassName(), $className
+            $this->className, $className
         ));
     }
 }

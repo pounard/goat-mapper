@@ -24,7 +24,7 @@ final class EntityHydratorFactoryTest extends AbstractRepositoryTest
     {
         return $callback(
             $repository
-                ->getRepositoryDefinition()
+                ->getDefinition()
                 ->getPrimaryKey()
                 ->createIdentifierFromRow($values)
             ,

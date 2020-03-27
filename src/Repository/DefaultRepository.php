@@ -26,7 +26,7 @@ class DefaultRepository implements Repository
 
     public function __construct(RepositoryDefinition $definition, RepositoryManager $manager)
     {
-        $this->className = $definition->getEntityDefinition()->getClassName();
+        $this->className = $definition->getClassName();
         $this->definition = $definition;
         $this->manager = $manager;
     }
@@ -47,7 +47,7 @@ class DefaultRepository implements Repository
     /**
      * {@inheritdoc}
      */
-    public final function getRepositoryDefinition(): RepositoryDefinition
+    public final function getDefinition(): RepositoryDefinition
     {
         return $this->definition;
     }

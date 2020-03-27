@@ -27,7 +27,7 @@ class EntityUpdateQueryBuilder
     public function __construct(Repository $repository, ?string $primaryTableAlias = null)
     {
         $this->repository = $repository;
-        $this->definition = $repository->getRepositoryDefinition();
+        $this->definition = $repository->getDefinition();
     }
 
     /**
@@ -65,7 +65,7 @@ class EntityUpdateQueryBuilder
     public function condition($propertyNameOrCallack, $value = null): self
     {
         if (\is_string($propertyNameOrCallack)) {
-            if ($columnName = $this->definition->findColumnName($propertyNameOrCallack)) {
+            if ($columnName = $this->definition->getColumn($propertyNameOrCallack)) {
                 $propertyNameOrCallack = $columnName;
             }
         }
@@ -88,7 +88,7 @@ class EntityUpdateQueryBuilder
     public function set($propertyName, $value): self
     {
         $this->getQuery()->set(
-            $this->definition->findColumnName($propertyName) ?? $propertyName,
+            $this->definition->getColumn($propertyName) ?? $propertyName,
             $value
         );
 
@@ -110,7 +110,7 @@ class EntityUpdateQueryBuilder
 
         foreach ($values as $propertyName => $value) {
             $query->set(
-                $this->definition->findColumnName($propertyName)  ?? $propertyName,
+                $this->definition->getColumn($propertyName)  ?? $propertyName,
                 $value
             );
         }
