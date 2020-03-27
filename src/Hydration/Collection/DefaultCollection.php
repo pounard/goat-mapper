@@ -76,6 +76,9 @@ final class DefaultCollection extends AbstractCollection
             throw new \InvalidArgumentException("\$initializer argument did not return an iterable");
         }
 
+        if ($this->forceRewindable) {
+            return $this->makeItRewindable($ret);
+        }
         return $ret;
     }
 }
