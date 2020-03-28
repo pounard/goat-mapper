@@ -8,6 +8,12 @@ use Goat\Mapper\Error\QueryError;
 
 final class Identifier implements Debuggable
 {
+    /** @var int */
+    private $length;
+
+    /** @var null|string */
+    private $hash;
+
     /** @var mixed[] */
     private $values;
 
@@ -17,6 +23,7 @@ final class Identifier implements Debuggable
     public function __construct(array $values)
     {
         $this->values = \array_values($values);
+        $this->length = \count($values);
     }
 
     public static function normalize($input): self
@@ -53,6 +60,38 @@ final class Identifier implements Debuggable
                 $key->toString()
             ));
         }
+    }
+
+    private function computeHash(): string
+    {
+        if (!$this->length) {
+            return '';
+        }
+
+        // Prey for all values to be Stringable.
+        return \implode('\\', $this->values);
+    }
+
+    public function getHash(): string
+    {
+        return $this->hash ?? (
+            $this->hash = $this->computeHash()
+        );
+    }
+
+    public function equals(Identifier $other): bool
+    {
+        if ($this->length !== $other->length) {
+            return false;
+        }
+
+        for ($i = 0; $i < $this->length; ++$i) {
+            if ($this->values[$i] !== $other->values[$i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

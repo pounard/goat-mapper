@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Goat\Mapper\Query\Relation;
 
 use Goat\Mapper\Definition\Identifier;
-use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Hydration\Collection\Collection;
+use Goat\Mapper\Hydration\Collection\DefaultCollection;
 
 /**
  * Use this when you have a single object to fetch and you don't care about
@@ -26,15 +26,15 @@ final class SingleResultSet implements ResultSet
     /**
      * {@inheritdoc}
      */
-    public function getCollection(Identifier $id): Collection
+    public function get(Identifier $id): Collection
     {
-        throw new QueryError("Single result set cannot return a collection");
+        return new DefaultCollection([$this->loadedEntity]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function get(Identifier $id): ?object
+    public function first(Identifier $id): ?object
     {
         return $this->loadedEntity;
     }

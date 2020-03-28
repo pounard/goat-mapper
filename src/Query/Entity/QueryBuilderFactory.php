@@ -8,6 +8,7 @@ use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
+use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Query\QueryError;
 use Goat\Runner\Runner;
 
@@ -98,6 +99,8 @@ class QueryBuilderFactory
 
     /**
      * Create and get a SELECT query builder for this repository.
+     *
+     * @deprecated
      */
     public function select(string $className, ?string $primaryTableAlias = null): EntitySelectQuery
     {
@@ -106,6 +109,20 @@ class QueryBuilderFactory
             $this->definitionRegistry,
             $this->entityHydratorFactory,
             $this->relation(),
+            $className,
+            $primaryTableAlias
+        );
+    }
+
+    /**
+     * Create and get a SELECT query builder for this repository.
+     */
+    public function query(string $className, ?string $primaryTableAlias = null): EntityQuery
+    {
+        return new EntityQuery(
+            $this->definitionRegistry,
+            $this->entityHydratorFactory,
+            $this->runner,
             $className,
             $primaryTableAlias
         );

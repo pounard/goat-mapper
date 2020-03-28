@@ -6,6 +6,7 @@ namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
 use Goat\Mapper\Definition\Registry\ArrayDefinitionRegistry;
+use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
@@ -153,9 +154,11 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
             }
         }
 
-        return new ChainDefinitionRegistry([
-            new StaticEntityDefinitionRegistry(),
-            new ArrayDefinitionRegistry($userArrayData),
-        ]);
+        return new CacheDefinitionRegistry(
+            new ChainDefinitionRegistry([
+                new StaticEntityDefinitionRegistry(),
+                new ArrayDefinitionRegistry($userArrayData),
+            ])
+        );
     }
 }

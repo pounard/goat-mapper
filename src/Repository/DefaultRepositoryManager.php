@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Goat\Mapper\Repository;
 
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
-use Goat\Mapper\Error\RepositoryDoesNotExistError;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Runner\Runner;
@@ -46,13 +45,7 @@ class DefaultRepositoryManager implements RepositoryManager
     }
 
     /**
-     * Fetch repository for class.
-     *
-     * @param string $className
-     *   Target class name or repository alias, identifier or class name.
-     *
-     * @throws RepositoryDoesNotExistError
-     *   If repository does not exists or if its definition is invalid.
+     * {@inheritdoc}
      */
     public function getRepository(string $className): Repository
     {
@@ -62,7 +55,15 @@ class DefaultRepositoryManager implements RepositoryManager
     }
 
     /**
-     * Create an arbitrary entity query builder.
+     * {@inheritdoc}
+     */
+    public function getDefinitionRegistry(): DefinitionRegistry
+    {
+        return $this->definitionRegistry;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getQueryBuilderFactory(): QueryBuilderFactory
     {

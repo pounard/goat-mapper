@@ -11,7 +11,6 @@ use Goat\Mapper\Error\PropertyDoesNotExistError;
 use Goat\Mapper\Error\PropertyError;
 use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Error\RelationDoesNotExistError;
-use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorContext;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Query\Relation\DefaultRelationFetcher;
 use Goat\Query\ExpressionColumn;
@@ -142,26 +141,12 @@ class EntitySelectQuery
      */
     public function eager(string $relation): self
     {
-        $definition = $this->definition->getRelation($relation);
-
-        // @todo add "required" or "optional" (left join or inner join)
-        // @todo once all will be supported, remove the switch
-        switch ($definition->getMode()) {
-
-            case Relation::MODE_ONE_TO_ONE:
-            case Relation::MODE_MANY_TO_ONE:
-                $propertyName = $definition->getPropertyName();
-                $this->eagerRelations[$propertyName] = true;
-                break;
-
-            case Relation::MODE_ONE_TO_MANY:
-                // @todo needs extra SQL query and rewindable result iterator
-                throw new QueryError("One to many eager fetch is not implemented yet.");
-
-            case Relation::MODE_MANY_TO_MANY:
-                // @todo needs extra SQL query and rewindable result iterator
-                throw new QueryError("Many to many eager fetch is not implemented yet.");
-        }
+        $this->eagerRelations[
+            $this
+                ->definition
+                ->getRelation($relation)
+                ->getPropertyName()
+        ] = true;
 
         return $this;
     }
@@ -190,6 +175,8 @@ class EntitySelectQuery
                     ->getPropertyName()
             ]
         );
+
+        return $this;
     }
 
     /**
@@ -333,49 +320,12 @@ class EntitySelectQuery
         $this->addRelationColumns($query, $relation, $targetTableAlias);
     }
 
-    private function handleEagerToManyWithKeyInTargetTableRelation(SelectQuery $query, Relation $relation): void
-    {
-        throw new \Exception("Not implemented yet.");
-    }
-
-    private function handleEagerToManyWithMappingTableRelation(SelectQuery $query, Relation $relation): void
-    {
-        throw new \Exception("Not implemented yet.");
-    }
-
-    private function handleEagerToManyRelation(SelectQuery $query, Relation $relation): void
-    {
-        switch ($relation->getKeyIn()) {
-
-            case Relation::KEY_IN_MAPPING:
-                $this->handleEagerToManyWithMappingTableRelation($query, $relation);
-                break;
-
-            case Relation::KEY_IN_TARGET:
-                $this->handleEagerToManyWithKeyInTargetTableRelation($query, $relation);
-                break;
-
-            default:
-                throw new \Exception("Target entity primary key can only be in a mapping table or in the target table for any to many relations.");
-        }
-    }
-
-    private function handleEagerRelation(SelectQuery $query, Relation $relation): void
-    {
-        if ($relation->isMultiple()) {
-            $this->handleEagerToManyRelation($query, $relation);
-        } else {
-            $this->handleEagerToOneRelation($query, $relation);
-        }
-    }
-
     /**
      * Fetch the build select query, you can then call execute() to fetch data.
      */
     public function build(): SelectQuery
     {
         $query = $this->getSelectQuery();
-        $context = new EntityHydratorContext($this->className);
 
         if ($this->withColumns) {
 
@@ -388,40 +338,26 @@ class EntitySelectQuery
             $query->setOption('class', $this->className);
 
             foreach ($this->definition->getRelations() as $relation) {
-                $propertyName = $relation->getPropertyName();
-
-                if (self::$doForceAllEagerRelationsToLoad && !$relation->isMultiple()) {
-                    $this->handleEagerRelation($query, $relation);
-                } else if ($this->eagerRelations[$propertyName] ?? false) {
-                    $this->handleEagerRelation($query, $relation);
-                } else {
-                    $context->lazyPropertyNames[] = $propertyName;
+                if (!$relation->isMultiple()) {
+                    $propertyName = $relation->getPropertyName();
+                    if (self::$doForceAllEagerRelationsToLoad || ($this->eagerRelations[$propertyName] ?? false)) {
+                        $this->handleEagerToOneRelation($query, $relation);
+                    }
                 }
             }
         }
 
-        if ($context->lazyPropertyNames) {
-            $context->relationFetcher = new DefaultRelationFetcher(
-                $this->relationQueryBuilder
-            );
-        }
-
         $entityHydrator = $this
             ->entityHydratorFactory
-            ->createHydrator(
-                $context
-            )
+            ->createHydrator($this->className)
         ;
 
-        $primaryKey = $this->definition->getPrimaryKey();
+        $fetcher = new DefaultRelationFetcher($this->relationQueryBuilder);
 
         $query->setOption(
             'hydrator',
-            static function (array $values) use ($primaryKey, $entityHydrator) {
-                return $entityHydrator(
-                    $primaryKey->createIdentifierFromRow($values),
-                    $values
-                );
+            static function (array $values) use ($fetcher, $entityHydrator) {
+                return $entityHydrator->hydrate($values, $fetcher);
             }
         );
 

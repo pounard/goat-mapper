@@ -29,7 +29,7 @@ interface ResultSet
      *
      * @return Collection<U>
      */
-    public function getCollection(Identifier $id): Collection;
+    public function get(Identifier $id): Collection;
 
     /**
      * Fetch a any to one relationship result for a single entity.
@@ -38,5 +38,5 @@ interface ResultSet
      *
      * @return null|<U>
      */
-    public function get(Identifier $id): ?object;
+    public function first(Identifier $id): ?object;
 }

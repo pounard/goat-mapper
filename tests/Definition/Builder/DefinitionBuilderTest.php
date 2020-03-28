@@ -115,7 +115,8 @@ final class DefinitionBuilderTest extends TestCase
     {
         $builder = new DefinitionBuilder(WithoutRelation::class);
 
-        $relation = $builder->addManyToOneRelation('relatedEntity', WithToManyInMappingRelation::class);
+        $relation = $builder->addOneToManyRelation('entities', WithToManyInMappingRelation::class);
+        $relation->keyIsInTargetTable();
         $relation->setTargetTableName('target_table');
         $relation->setTargetKey(['target_id' => 'int']);
 
@@ -126,7 +127,7 @@ final class DefinitionBuilderTest extends TestCase
         $builder->setTableName('source_table');
 
         $definition = $builder->compile();
-        $relation = $definition->getRelation('relatedEntity');
+        $relation = $definition->getRelation('entities');
         self::assertSame(['id'], $relation->getSourceKey()->getColumnNames());
         self::assertSame(['target_id'], $relation->getTargetKey()->getColumnNames());
         self::assertSame('source_table', $relation->getSourceTable()->getName());

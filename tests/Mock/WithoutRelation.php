@@ -9,7 +9,7 @@ use Goat\Mapper\Definition\Registry\StaticEntityDefinition;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-/* final */ class WithoutRelation implements StaticEntityDefinition
+class WithoutRelation implements StaticEntityDefinition
 {
     /** @var UuidInterface */
     private $id;
@@ -26,22 +26,6 @@ use Ramsey\Uuid\UuidInterface;
             'id' => 'uuid',
         ]);
     }
-
-    /*
-    public static function toDefinitionArray(): array
-    {
-        return [
-            'table' => 'without_relation',
-            'primary_key' => [
-                'id' => 'uuid',
-            ],
-            'columns' => [
-                'id' => 'id',
-                'value' => 'value',
-            ],
-        ];
-    }
-     */
 
     public static function toTableSchema(): array
     {

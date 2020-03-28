@@ -55,7 +55,7 @@ final class DefaultRelationFetcher implements RelationFetcher
     /**
      * {@inheritdoc}
      */
-    public function bulkSingle(string $className, string $propertyName, array $identifiers): ResultSet
+    public function bulk(string $className, string $propertyName, array $identifiers): ResultSet
     {
         $result = $this
             ->relationQueryBuilder
@@ -72,24 +72,5 @@ final class DefaultRelationFetcher implements RelationFetcher
         }
 
         throw new \Exception("Not implemented yet");
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function bulkCollection(string $className, string $propertyName, array $identifiers): ResultSet
-    {
-        // @todo Order?
-        $result = $this
-            ->relationQueryBuilder
-            ->createFetchRelatedQuery($className, $propertyName, $identifiers)
-            ->execute()
-        ;
-
-        if (!$result->countRows()) {
-            return new EmptyResultSet();
-        }
-
-        throw new \Exception("Not implemented yet.");
     }
 }

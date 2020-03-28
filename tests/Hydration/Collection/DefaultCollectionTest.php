@@ -27,7 +27,7 @@ final class DefaultCollectionTest extends TestCase
         self::assertSame(1, $called);
     }
 
-    public function testNotCountableInitializerResultRaiseError(): void
+    public function testNotCountableInitializerCanCount(): void
     {
         $collection = new DefaultCollection(function () {
             for ($i = 1; $i < 5; ++$i) {
@@ -35,8 +35,7 @@ final class DefaultCollectionTest extends TestCase
             }
         });
 
-        self::expectException(\BadMethodCallException::class);
-        $collection->count();
+        self::assertSame(4, $collection->count());
     }
 
     public function testInitializerReturnArray(): void

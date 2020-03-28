@@ -134,7 +134,7 @@ final class DefinitionBuilder
         return $this->createRelationBuilder($propertyName, $className, Relation::MODE_MANY_TO_ONE);
     }
 
-    public function addToManyRelation(string $propertyName, string $className): RelationDefinitionBuilder
+    public function addManyToManyRelation(string $propertyName, string $className): RelationDefinitionBuilder
     {
         $this->ensurePropertyCanHandleRelation($propertyName);
 

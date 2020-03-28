@@ -6,6 +6,7 @@ namespace Goat\Mapper\Repository;
 
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Runner\Runner;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 
 interface RepositoryManager
 {
@@ -25,6 +26,11 @@ interface RepositoryManager
      *   for a certain class name.
      */
     public function getRepository(string $className): Repository;
+
+    /**
+     * Get definition registry.
+     */
+    public function getDefinitionRegistry(): DefinitionRegistry;
 
     /**
      * Create an arbitrary entity query builder.

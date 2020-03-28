@@ -8,6 +8,7 @@ use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\RelationDoesNotExistError;
 use Goat\Mapper\Query\Entity\EntitySelectQuery;
+use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Runner\Runner;
 
 /**
@@ -39,8 +40,15 @@ interface Repository
 
     /**
      * Create select query builder.
+     *
+     * @deprecated
      */
     public function fetch(?string $primaryTableAlias = null): EntitySelectQuery;
+
+    /**
+     * Create select query builder.
+     */
+    public function query(?string $primaryTableAlias = null): EntityQuery;
 
     /**
      * Find one entity.

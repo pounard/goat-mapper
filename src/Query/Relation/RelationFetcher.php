@@ -57,15 +57,5 @@ interface RelationFetcher
      * @return ResultSet<T,U>
      *   Where T is the source entity type, U the target relation
      */
-    public function bulkSingle(string $className, string $propertyName, array $identifiers): ResultSet;
-
-    /**
-     * @param string $className
-     * @param string $propertyName
-     * @param Identifier<T>[] $identifiers
-     *
-     * @return ResultSet<T,Collection<U>>
-     *   Where T is the source entity type, U the target relation
-     */
-    public function bulkCollection(string $className, string $propertyName, array $identifiers): ResultSet;
+    public function bulk(string $className, string $propertyName, array $identifiers): ResultSet;
 }

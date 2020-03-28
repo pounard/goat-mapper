@@ -60,10 +60,15 @@ Priority 0, we need it ASAP:
 
  - [x] make lazy collections rewindable, seriously,
 
+ - [ ] implement the rewindabe re-usable result iterator in goat-query,
+
  - [ ] implement the N+1 bulk lazy load solution for large result sets with
    any to many collection,
 
- - [ ] write the finder API, with a dynamic registry, able to introspect for
+ - [x] rewrite SELECT query using a graph for eager relations, allowing to
+   recurse in repository dependency graph for eager loading,
+
+ - [x] write the finder API, with a dynamic registry, able to introspect for
    classes and call the builder if necessary (using the entity self-defining
    interface),
 
@@ -90,9 +95,20 @@ Priority 1, we need it before being able to use it:
 
  - [ ] allow custom repositories to be used instead of the default one,
 
- - [ ] write a basic symfony bundle.
+ - [ ] write a basic symfony bundle,
+
+ - [ ] add custom repository logic to symfony bundle,
+
+ - [ ] write poor's man documentation for basic use cases.
 
 Priority 2, industrialisation:
+
+ - [x] implement to one conditions using property path e.g.
+   'entity.property.property' = foo,
+
+ - [ ] implement to many conditions same as upper, but using EXISTS query,
+
+ - [ ] instrumentation!
 
  - [x] implement chain definition registry
 
@@ -100,13 +116,19 @@ Priority 2, industrialisation:
 
  - [ ] implement SQL schema parsing auto configuration (from SQL to PHP class),
 
- - [ ] implement yaml/annotation driven configuration (from PHP class to SQL),
+ - [x] implement array-based configuration,
+
+ - [ ] implement yaml reader,
+
+ - [x] never implement annotation (yes, I hate those),
 
  - [ ] stabilise the symfony bundle and make it highly customizable,
 
  - [ ] documentation.
 
 Priority 3, for later:
+
+ - [ ] implement xml reader ? why exactly ?
 
  - [ ] handle null references when lazy loading any to one relationship,
    as of today, a virtual proxy is used, but it'll crash if loaded reference

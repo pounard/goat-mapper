@@ -8,6 +8,7 @@ use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\EntityDoesNotExistError;
 use Goat\Mapper\Query\Entity\EntitySelectQuery;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
+use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Runner\Runner;
 
 /**
@@ -74,6 +75,21 @@ class DefaultRepository implements Repository
             ->manager
             ->getQueryBuilderFactory()
             ->select(
+                $this->className,
+                $primaryTableAlias
+            )
+        ;
+    }
+
+    /**
+     * Create select query builder.
+     */
+    public function query(?string $primaryTableAlias = null): EntityQuery
+    {
+        return $this
+            ->manager
+            ->getQueryBuilderFactory()
+            ->query(
                 $this->className,
                 $primaryTableAlias
             )
