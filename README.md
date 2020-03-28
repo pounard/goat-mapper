@@ -62,11 +62,15 @@ Priority 0, we need it ASAP:
 
  - [ ] implement the rewindabe re-usable result iterator in goat-query,
 
+ - [x] rewrite SELECT query using a graph for eager relations, allowing to
+   recurse in repository dependency graph for eager loading,
+
  - [ ] implement the N+1 bulk lazy load solution for large result sets with
    any to many collection,
 
- - [x] rewrite SELECT query using a graph for eager relations, allowing to
-   recurse in repository dependency graph for eager loading,
+ - [ ] make relation fetcher use the graph based query builder,
+
+ - [ ] untangle the relation fetcher interface and implementation mess,
 
  - [x] write the finder API, with a dynamic registry, able to introspect for
    classes and call the builder if necessary (using the entity self-defining

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Tests\Definition;
+namespace Goat\Mapper\Tests\Unit\Definition;
 
 use PHPUnit\Framework\TestCase;
 use Goat\Mapper\Definition\Column;

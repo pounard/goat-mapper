@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Test\Query\Relation;
+namespace Goat\Mapper\Test\Unit\Query\Relation;
 
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Error\QueryError;

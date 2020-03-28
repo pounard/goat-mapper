@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Test\Query\Graph;
+namespace Goat\Mapper\Tests\Unit\Query\Graph;
 
 use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Mapper\Query\Graph\Traverser;
@@ -10,7 +10,7 @@ use Goat\Mapper\Tests\AbstractRepositoryTest;
 use Goat\Mapper\Tests\Mock\Client;
 use Goat\Runner\Testing\NullRunner;
 
-final class EntityQueryTest extends AbstractRepositoryTest
+final class BuildingTest extends AbstractRepositoryTest
 {
     public function testGraphStopsAtToManyRelations(): void
     {

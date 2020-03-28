@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Tests;
+namespace Goat\Mapper\Tests\Unit\Query\Graph;
 
 use PHPUnit\Framework\TestCase;
 

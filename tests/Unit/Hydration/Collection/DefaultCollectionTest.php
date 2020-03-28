@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Test\Hydration\Collection;
+namespace Goat\Mapper\Test\Unit\Hydration\Collection;
 
 use PHPUnit\Framework\TestCase;
 use Goat\Mapper\Hydration\Collection\DefaultCollection;
