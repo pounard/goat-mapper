@@ -40,11 +40,11 @@ use Ramsey\Uuid\UuidInterface;
         ];
     }
 
-    public static function toTableSchema(): array
+    public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE to_one_in_mapping (
+CREATE TABLE {$schema}.to_one_in_mapping (
     id UUID NOT NULL,
     PRIMARY KEY (id)
 )

@@ -67,16 +67,16 @@ use Ramsey\Uuid\UuidInterface;
     }
      */
 
-    public static function toTableSchema(): array
+    public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE to_one_in_source (
+CREATE TABLE {$schema}.to_one_in_source (
     id UUID NOT NULL,
     target_id UUID DEFAULT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (target_id)
-        REFERENCES to_one_in_target (id)
+        REFERENCES {$schema}.to_one_in_target (id)
         ON DELETE SET NULL
 )
 SQL

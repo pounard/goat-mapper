@@ -54,11 +54,11 @@ class Client implements StaticEntityDefinition
         $relation->setTargetKey(['clientId' => 'uuid']);
     }
 
-    public static function toTableSchema(): array
+    public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE client (
+CREATE TABLE {$schema}.client (
     id UUID NOT NULL,
     firstname VARCHAR(512) NOT NULL,
     lastname VARCHAR(512) NOT NULL,

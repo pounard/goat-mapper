@@ -27,13 +27,13 @@ class WithoutRelation implements StaticEntityDefinition
         ]);
     }
 
-    public static function toTableSchema(): array
+    public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE without_relation (
+CREATE TABLE {$schema}.without_relation (
     id UUID NOT NULL,
-    value TEXT DEFAULT NULL
+    value TEXT DEFAULT NULL,
     PRIMARY KEY (id)
 )
 SQL
@@ -41,7 +41,7 @@ SQL
             'mysql' => <<<SQL
 CREATE TABLE without_relation (
     id VARCHAR(36) NOT NULL,
-    value TEXT DEFAULT NULL
+    value TEXT DEFAULT NULL,
     PRIMARY KEY (id)
 )
 SQL

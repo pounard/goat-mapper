@@ -16,6 +16,11 @@ use Goat\Mapper\Hydration\HydratorRegistry\HydratorRegistry;
 use Goat\Mapper\Hydration\Proxy\ProxyFactory;
 use Goat\Mapper\Repository\DefaultRepositoryManager;
 use Goat\Mapper\Repository\RepositoryManager;
+use Goat\Mapper\Tests\Mock\Address;
+use Goat\Mapper\Tests\Mock\Client;
+use Goat\Mapper\Tests\Mock\Country;
+use Goat\Mapper\Tests\Mock\Product;
+use Goat\Mapper\Tests\Mock\ProductTag;
 use Goat\Mapper\Tests\Mock\WithMultipleColumnPrimaryKey;
 use Goat\Mapper\Tests\Mock\WithToManyInMappingRelation;
 use Goat\Mapper\Tests\Mock\WithToManyInTargetRelation;
@@ -36,7 +41,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 {
     final protected static function assertSameSql($expected, $actual, string $message = null): void
     {
-        $formatter = (new NullRunner())->getFormatter();
+        $formatter = (new NullRunner())->getPlatform()->getSqlWriter();
 
         if ($expected instanceof Query) {
             $expected = $formatter->format($expected);
@@ -63,6 +68,13 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     {
         // Order is important, because of key constraints.
         return [
+            // Functionnal testing
+            Country::class,
+            Client::class,
+            Address::class,
+            Product::class,
+            ProductTag::class,
+            // Unit testing
             WithMultipleColumnPrimaryKey::class,
             WithoutRelation::class,
             WithToManyInMappingRelation::class,
@@ -102,16 +114,21 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         );
     }
 
-    final protected function createSchema(Runner $runner): void
+    final protected function createSchema(Runner $runner, ?string $schema): void
     {
         $driverName = $runner->getDriverName();
 
         foreach (self::getTestEntityClasses() as $className) {
-            $tables = \call_user_func([$className, 'toTableSchema']);
+            if (\method_exists($className, 'toTableSchema')) {
+                $tableSchema = \call_user_func([$className, 'toTableSchema'], $schema);
 
-            $createTableStatement = $tables[$driverName] ?? $tables['default'];
+                // Cast as array there might be more than one statement.
+                $statements = (array)($tableSchema[$driverName] ?? $tableSchema['default']);
 
-            $runner->execute($createTableStatement);
+                foreach ($statements as $statement) {
+                    $runner->execute($statement);
+                }
+            }
         }
     }
 

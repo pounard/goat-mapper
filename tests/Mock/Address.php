@@ -75,11 +75,11 @@ class Address implements StaticEntityDefinition
         $relation->setTargetKey(['code' => 'string']);
     }
 
-    public static function toTableSchema(): array
+    public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE client_address (
+CREATE TABLE {$schema}.client_address (
     id UUID NOT NULL,
     client_id UUID NOT NULL,
     type VARCHAR(255) NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE client_address (
     PRIMARY KEY (id),
     UNIQUE (client_id, type),
     FOREIGN KEY (client_id)
-        REFERENCES client (id)
+        REFERENCES {$schema}.client (id)
         ON DELETE CASCADE
 )
 SQL

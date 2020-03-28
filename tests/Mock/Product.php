@@ -61,11 +61,11 @@ class Product implements StaticEntityDefinition
         $relation->setTargetKey(['tag_id' => 'int']);
     }
 
-    public static function toTableSchema(): array
+    public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE product (
+CREATE TABLE {$schema}.product (
     id UUID NOT NULL,
     reference VARCHAR(64) NOT NULL,
     title VARCHAR(512) NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE product (
 SQL
             ,
             'mysql' => <<<SQL
-CREATE TABLE without_relation (
+CREATE TABLE product (
     id VARCHAR(36) NOT NULL,
     reference VARCHAR(64) NOT NULL,
     title VARCHAR(512) NOT NULL,

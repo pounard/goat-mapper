@@ -35,11 +35,11 @@ class Country implements StaticEntityDefinition
         ]);
     }
 
-    public static function toTableSchema(): array
+    public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE country_list (
+CREATE TABLE {$schema}.country_list (
     code VARCHAR(10) NOT NULL,
     title TEXT NOT NULL,
     PRIMARY KEY (code)
