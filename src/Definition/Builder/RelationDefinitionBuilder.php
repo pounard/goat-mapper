@@ -16,17 +16,11 @@ final class RelationDefinitionBuilder
 {
     use BuilderTrait;
 
-    /** @var string */
-    private $sourcePropertyName;
-
-    /** @var string */
-    private $targetClassName;
-
-    /** @var int */
-    private $mode;
-
-    /** @var null|int */
-    private $keyIn;
+    private string $sourcePropertyName;
+    private string $targetClassName;
+    private int $mode;
+    private ?int $keyIn = null;
+    private ?Table $targetTable = null;
 
     /** @var callable */
     private $sourceTable;
@@ -34,17 +28,14 @@ final class RelationDefinitionBuilder
     /** @var callable */
     private $sourcePrimaryKey;
 
-    /** @var null|Table */
-    private $targetTable;
+    /** @var null|array<string,string> */
+    private ?array $sourceKey = null;
 
     /** @var null|array<string,string> */
-    private $sourceKey;
-
-    /** @var null|array<string,string> */
-    private $targetKey = [];
+    private array $targetKey = [];
 
     /** @var array<string,string> */
-    private $columnMap = [];
+    private array $columnMap = [];
 
     public function __construct(
         string $sourcePropertyName,

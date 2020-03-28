@@ -9,26 +9,17 @@ use Goat\Mapper\Error\PropertyError;
 
 /**
  * @todo
- *   - column to object property mapping (with nested object support),
- *   - a builder object/pattern for people that want to use plain PHP to define a repository,
  *   - repository with different tables to JOIN
  */
 class RepositoryDefinition
 {
-    /** @var string */
-    private $className;
-
-    /** @var array<string,string> */
-    private $columnMap = [];
-
-    /** @var Table */
-    private $table;
-
-    /** @var PrimaryKey */
-    private $primaryKey;
+    private string $className;
+    private array $columnMap = [];
+    private PrimaryKey $primaryKey;
+    private Table $table;
 
     /** @var Relation[] */
-    private $relations = [];
+    private array $relations = [];
 
     /**
      * @var array>string,string[]>

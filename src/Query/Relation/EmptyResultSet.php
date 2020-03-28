@@ -13,7 +13,7 @@ final class EmptyResultSet implements ResultSet
     /**
      * {@inheritdoc}
      */
-    public function getCollection(Identifier $id): Collection
+    public function get(Identifier $id): Collection
     {
         return new EmptyCollection();
     }
@@ -21,7 +21,7 @@ final class EmptyResultSet implements ResultSet
     /**
      * {@inheritdoc}
      */
-    public function get(Identifier $id): ?object
+    public function first(Identifier $id): ?object
     {
         return null;
     }

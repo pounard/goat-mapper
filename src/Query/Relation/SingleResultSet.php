@@ -15,8 +15,7 @@ use Goat\Mapper\Hydration\Collection\DefaultCollection;
  */
 final class SingleResultSet implements ResultSet
 {
-    /** @var null|object */
-    private $loadedEntity;
+    private ?object $loadedEntity = null;
 
     public function __construct(?object $loadedEntity)
     {

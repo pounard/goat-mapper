@@ -68,7 +68,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     {
         // Order is important, because of key constraints.
         return [
-            // Functionnal testing
+            // Functional testing
             Country::class,
             Client::class,
             Address::class,

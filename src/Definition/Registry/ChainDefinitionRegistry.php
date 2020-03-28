@@ -12,7 +12,7 @@ final class ChainDefinitionRegistry implements DefinitionRegistry
     use DefinitionRegistryTrait;
 
     /** @var DefinitionRegistry[] */
-    private $instances;
+    private iterable $instances;
 
     /** @param DefinitionRegistry[] $instances */
     public function __construct(iterable $instances)

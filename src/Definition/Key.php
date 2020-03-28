@@ -9,10 +9,10 @@ use Goat\Mapper\Error\QueryError;
 class Key implements Debuggable
 {
     /** @var Column[] */
-    private $columns;
+    private array $columns;
 
     /** @var null|string[] */
-    private $columnNames = null;
+    private ?array $columnNames = null;
 
     /**
      * @param Column[] $columns

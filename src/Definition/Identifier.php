@@ -8,14 +8,9 @@ use Goat\Mapper\Error\QueryError;
 
 final class Identifier implements Debuggable
 {
-    /** @var int */
-    private $length;
-
-    /** @var null|string */
-    private $hash;
-
-    /** @var mixed[] */
-    private $values;
+    private int $length;
+    private ?string $hash = null;
+    private array $values;
 
     /**
      * @param Column[] $columns

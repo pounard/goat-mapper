@@ -6,11 +6,8 @@ namespace Goat\Mapper\Definition;
 
 class Table implements Debuggable
 {
-    /** @var string */
-    private $name;
-
-    /** @var null|string */
-    private $schema;
+    private string $name;
+    private ?string $schema = null;
 
     public function __construct(string $name, ?string $schema = null)
     {

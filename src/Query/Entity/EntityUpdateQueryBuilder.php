@@ -9,20 +9,14 @@ use Goat\Mapper\Error\PropertyDoesNotExistError;
 use Goat\Mapper\Error\PropertyError;
 use Goat\Mapper\Repository\Repository;
 use Goat\Query\ExpressionRelation;
-use Goat\Query\SelectQuery;
 use Goat\Query\UpdateQuery;
 use Goat\Runner\ResultIterator;
 
 class EntityUpdateQueryBuilder
 {
-    /** @var Repository */
-    private $repository;
-
-    /** @var RepositoryDefinition */
-    private $definition;
-
-    /** @var SelectQuery */
-    private $query;
+    private Repository $repository;
+    private RepositoryDefinition $definition;
+    private ?UpdateQuery $query = null;
 
     public function __construct(Repository $repository, ?string $primaryTableAlias = null)
     {

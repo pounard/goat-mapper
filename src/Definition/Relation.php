@@ -30,29 +30,14 @@ class Relation
     /** Target entity primary key is in mapping table */
     const KEY_IN_MAPPING = 3;
 
-    /** @var string */
-    private $className;
-
-    /** @var string */
-    private $propertyName;
-
-    /** @var int */
-    private $mode;
-
-    /** @var int */
-    private $keyIn;
-
-    /** @var Table */
-    private $targetTable;
-
-    /** @var Table */
-    private $sourceTable;
-
-    /** @var Key */
-    private $targetKey;
-
-    /** @var Key */
-    private $sourceKey;
+    private string $className;
+    private string $propertyName;
+    private int $mode;
+    private int $keyIn;
+    private Table $targetTable;
+    private Table $sourceTable;
+    private Key $targetKey;
+    private Key $sourceKey;
 
     public function __construct(
         string $propertyName,

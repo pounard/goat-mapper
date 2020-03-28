@@ -9,11 +9,8 @@ use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 
 final class RelationQueryBuilder
 {
-    /** @var DefinitionRegistry */
-    private $definitionRegistry;
-
-    /** @var QueryBuilderFactory */
-    private $queryBuilderFactory;
+    private DefinitionRegistry $definitionRegistry;
+    private QueryBuilderFactory $queryBuilderFactory;
 
     public function __construct(
         DefinitionRegistry $definitionRegistry,

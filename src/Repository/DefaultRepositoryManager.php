@@ -11,20 +11,11 @@ use Goat\Runner\Runner;
 
 class DefaultRepositoryManager implements RepositoryManager
 {
-    /** @var Runner */
-    private $runner;
-
-    /** @var DefinitionRegistry */
-    private $definitionRegistry;
-
-    /** @var Repository[] */
-    private $repositories = [];
-
-    /** @var EntityHydratorFactory */
-    private $entityHydratorFactory;
-
-    /** @var null|QueryBuilderFactory */
-    private $queryBuilderFactory;
+    private Runner $runner;
+    private DefinitionRegistry $definitionRegistry;
+    private array $repositories = [];
+    private EntityHydratorFactory $entityHydratorFactory;
+    private ?QueryBuilderFactory $queryBuilderFactory;
 
     public function __construct(
         Runner $runner,

@@ -9,8 +9,7 @@ use ProxyManager\Proxy\ProxyInterface;
 
 class ProxyFactory
 {
-    /** @var LazyLoadingValueHolderFactory */
-    private $proxyFactory;
+    private LazyLoadingValueHolderFactory $proxyFactory;
 
     public function __construct(?LazyLoadingValueHolderFactory $proxyFactory = null)
     {

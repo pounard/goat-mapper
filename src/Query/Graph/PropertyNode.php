@@ -6,8 +6,7 @@ namespace Goat\Mapper\Query\Graph;
 
 class PropertyNode extends Node
 {
-    /** @var string */
-    protected $propertyName;
+    protected string $propertyName;
 
     /**
      * @param string $path

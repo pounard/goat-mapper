@@ -54,14 +54,11 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
 {
     use DefinitionRegistryTrait;
 
-    /** @var ?string */
-    private $defaultSchema = 'public';
+    private ?string $defaultSchema = 'public';
+    private array $userData;
 
-    /** @var RepositoryDefinition[] */
-    private $repositories = [];
-
-    /** @var array */
-    private $userData;
+    /** @var array<string,RepositoryDefinition> */
+    private array $repositories = [];
 
     public function __construct(array $userData, ?string $defaultSchema = 'public')
     {

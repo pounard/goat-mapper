@@ -14,11 +14,10 @@ namespace Goat\Mapper\Hydration\Collection;
  */
 final class CollectionInitializerResult
 {
+    private ?int $count = null;
+
     /** @var iterable<T> */
     private $values;
-
-    /** @var ?int */
-    private $count = null;
 
     /**
      * @param iterable<T>|callable $values

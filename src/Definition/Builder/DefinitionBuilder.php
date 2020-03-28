@@ -17,23 +17,18 @@ final class DefinitionBuilder
 {
     use BuilderTrait;
 
-    /** @var string */
-    private $className;
-
-    /** @var null|Table */
-    private $table;
-
-    /** @var null|PrimaryKey */
-    private $primaryKey;
-
-    /** @var string */
-    private $primaryKeyColumnMap = [];
+    private string $className;
+    private ?Table $table = null;
+    private ?PrimaryKey $primaryKey = null;
 
     /** @var array<string,string> */
-    private $columnMap = [];
+    private array $primaryKeyColumnMap = [];
+
+    /** @var array<string,string> */
+    private array $columnMap = [];
 
     /** @var array<string,RelationDefinitionBuilder> */
-    private $relationBuilders = [];
+    private array $relationBuilders = [];
 
     public function __construct(string $className)
     {

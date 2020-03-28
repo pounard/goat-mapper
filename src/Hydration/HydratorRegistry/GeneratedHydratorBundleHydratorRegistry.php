@@ -8,8 +8,7 @@ use GeneratedHydrator\Bridge\Symfony\Hydrator;
 
 class GeneratedHydratorBundleHydratorRegistry implements HydratorRegistry
 {
-    /** @var Hydrator */
-    private $hydrator;
+    private Hydrator $hydrator;
 
     public function __construct(Hydrator $hydrator)
     {

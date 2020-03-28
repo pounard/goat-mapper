@@ -17,11 +17,10 @@ namespace Goat\Mapper\Hydration\Collection;
  */
 abstract class AbstractCollection implements Collection, \IteratorAggregate
 {
+    private ?int $count;
+
     /** @var iterable<T> */
     private $values;
-
-    /** @var null|int */
-    private $count;
 
     /**
      * @param iterable<T> $values

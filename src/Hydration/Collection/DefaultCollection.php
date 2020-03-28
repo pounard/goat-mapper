@@ -9,11 +9,10 @@ namespace Goat\Mapper\Hydration\Collection;
  */
 final class DefaultCollection extends AbstractCollection
 {
+    private bool $forceRewindable = true;
+
     /** @var null|callable */
     private $initializer = null;
-
-    /** @var bool */
-    private $forceRewindable = true;
 
     /**
      * @param iterable<T>|callable<T> $initializer

@@ -14,17 +14,10 @@ use Goat\Runner\Runner;
 
 class QueryBuilderFactory
 {
-    /** @var DefinitionRegistry */
-    private $definitionRegistry;
-
-    /** @var EntityHydratorFactory */
-    private $entityHydratorFactory;
-
-    /** @var RelationQueryBuilder */
-    private $relationQueryBuilder;
-
-    /** @var Runner */
-    private $runner;
+    private Runner $runner;
+    private DefinitionRegistry $definitionRegistry;
+    private EntityHydratorFactory $entityHydratorFactory;
+    private ?RelationQueryBuilder $relationQueryBuilder;
 
     public function __construct(
         Runner $runner,

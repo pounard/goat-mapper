@@ -16,14 +16,9 @@ use Goat\Runner\Runner;
  */
 class DefaultRepository implements Repository
 {
-    /** @var RepositoryDefinition */
-    private $definition;
-
-    /** @var RepositoryManager */
-    private $manager;
-
-    /** @var string */
-    private $className;
+    private RepositoryDefinition $definition;
+    private RepositoryManager $manager;
+    private string $className;
 
     public function __construct(RepositoryDefinition $definition, RepositoryManager $manager)
     {
