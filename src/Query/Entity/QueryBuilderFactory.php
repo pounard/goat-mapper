@@ -17,7 +17,6 @@ class QueryBuilderFactory
     private Runner $runner;
     private DefinitionRegistry $definitionRegistry;
     private EntityHydratorFactory $entityHydratorFactory;
-    private ?RelationQueryBuilder $relationQueryBuilder;
 
     public function __construct(
         Runner $runner,
@@ -81,33 +80,6 @@ class QueryBuilderFactory
     }
 
     /**
-     * Get relation query builder
-     */
-    public function relation(): RelationQueryBuilder
-    {
-        return $this->relationQueryBuilder ?? (
-            $this->relationQueryBuilder = $this->createRelationQueryBuilder()
-        );
-    }
-
-    /**
-     * Create and get a SELECT query builder for this repository.
-     *
-     * @deprecated
-     */
-    public function select(string $className, ?string $primaryTableAlias = null): EntitySelectQuery
-    {
-        return new EntitySelectQuery(
-            $this->runner,
-            $this->definitionRegistry,
-            $this->entityHydratorFactory,
-            $this->relation(),
-            $className,
-            $primaryTableAlias
-        );
-    }
-
-    /**
      * Create and get a SELECT query builder for this repository.
      */
     public function query(string $className, ?string $primaryTableAlias = null): EntityQuery
@@ -122,15 +94,29 @@ class QueryBuilderFactory
     }
 
     /**
+     * Alias for query, but preparing the query for loading relations.
+     *
+     * @param Identifier[] $identifiers
+     */
+    public function related(string $className, string $propertyName, iterable $identifiers)
+    {
+        $relation = $this
+            ->definitionRegistry
+            ->getDefinition($className)
+            ->getRelation($propertyName)
+        ;
+
+        return $this
+            ->query($relation->getClassName())
+            ->from($className, $propertyName, $identifiers)
+        ;
+    }
+
+    /**
      * Create and get an UPDATE query builder for this repository.
      */
     public function update(string $className): EntityUpdateQueryBuilder
     {
         throw new \Exception("Not implemented yet.");
-    }
-
-    private function createRelationQueryBuilder(): RelationQueryBuilder
-    {
-        return new RelationQueryBuilder($this->definitionRegistry, $this);
     }
 }

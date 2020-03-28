@@ -75,6 +75,21 @@ class EntityQuery
     }
 
     /**
+     * Load from a source entity from a relation.
+     *
+     * @param iterable<Identifier> $identifiers
+     *   Relation source identifier(s).
+     */
+    public function from(string $className, string $propertyName, iterable $identifiers): self
+    {
+        $this->rootNode->withSource(
+            new Source($className, $propertyName, $identifiers)
+        );
+
+        return $this;
+    }
+
+    /**
      * Trigger eager loading of a nested property.
      *
      * This can recurse indefinitely over the repository dependency graph
@@ -252,7 +267,7 @@ class EntityQuery
     public function build(): SelectQuery
     {
         // @todo make the object immutable once this called.
-        $traverser = new Traverser();
+        $traverser = Traverser::createQueryBuilder();
         $traverser->traverse($this);
 
         $query = $this->getQuery();

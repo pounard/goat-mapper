@@ -7,7 +7,6 @@ namespace Goat\Mapper\Repository;
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\RelationDoesNotExistError;
-use Goat\Mapper\Query\Entity\EntitySelectQuery;
 use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Runner\Runner;
 
@@ -37,13 +36,6 @@ interface Repository
      *   If property does not exist or is not a relation.
      */
     public function getRelatedRepository(string $relation): Repository;
-
-    /**
-     * Create select query builder.
-     *
-     * @deprecated
-     */
-    public function fetch(?string $primaryTableAlias = null): EntitySelectQuery;
 
     /**
      * Create select query builder.

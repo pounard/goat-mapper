@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Query\Graph;
+namespace Goat\Mapper\Query\Graph\Visitor;
 
 use Goat\Mapper\Query\Entity\QueryHelper;
+use Goat\Mapper\Query\Graph\EntityQuery;
+use Goat\Mapper\Query\Graph\Node;
+use Goat\Mapper\Query\Graph\PropertyNode;
 
-class EagerJoinVisitor extends Visitor
+class EagerJoinVisitor extends AbstractVisitor
 {
     /**
      * {@inheritdoc}

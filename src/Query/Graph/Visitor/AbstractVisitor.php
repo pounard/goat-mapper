@@ -2,9 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Query\Graph;
+namespace Goat\Mapper\Query\Graph\Visitor;
 
-abstract class Visitor
+use Goat\Mapper\Query\Graph\EntityQuery;
+use Goat\Mapper\Query\Graph\Node;
+use Goat\Mapper\Query\Graph\PropertyNode;
+use Goat\Mapper\Query\Graph\RootNode;
+
+abstract class AbstractVisitor implements RootVisitor, PropertyVisitor
 {
     /**
      * React on root node traversal.

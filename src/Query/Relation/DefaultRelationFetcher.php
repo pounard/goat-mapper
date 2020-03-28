@@ -8,16 +8,15 @@ use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Hydration\Collection\Collection;
 use Goat\Mapper\Hydration\Collection\CollectionInitializerResult;
 use Goat\Mapper\Hydration\Collection\DefaultCollection;
-use Goat\Mapper\Query\Entity\RelationQueryBuilder;
+use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 
 final class DefaultRelationFetcher implements RelationFetcher
 {
-    /** @var RelationQueryBuilder */
-    private $relationQueryBuilder;
+    private QueryBuilderFactory $queryBuilderFactory;
 
-    public function __construct(RelationQueryBuilder $relationQueryBuilder)
+    public function __construct(QueryBuilderFactory $queryBuilderFactory)
     {
-        $this->relationQueryBuilder = $relationQueryBuilder;
+        $this->queryBuilderFactory = $queryBuilderFactory;
     }
 
     /**
@@ -26,7 +25,7 @@ final class DefaultRelationFetcher implements RelationFetcher
     public function single(string $className, string $propertyName, Identifier $id): ?object
     {
         return $this
-            ->relationQueryBuilder
+            ->queryBuilderFactory
             ->createFetchRelatedQuery($className, $propertyName, [$id])
             ->execute()
             ->fetch()

@@ -6,7 +6,6 @@ namespace Goat\Mapper\Repository;
 
 use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\EntityDoesNotExistError;
-use Goat\Mapper\Query\Entity\EntitySelectQuery;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Runner\Runner;
@@ -59,21 +58,6 @@ class DefaultRepository implements Repository
                 ->getRelation($relation)
                 ->getClassName()
         );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function fetch(?string $primaryTableAlias = null): EntitySelectQuery
-    {
-        return $this
-            ->manager
-            ->getQueryBuilderFactory()
-            ->select(
-                $this->className,
-                $primaryTableAlias
-            )
-        ;
     }
 
     /**

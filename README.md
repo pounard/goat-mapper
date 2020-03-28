@@ -60,8 +60,6 @@ Priority 0, we need it ASAP:
 
  - [x] make lazy collections rewindable, seriously,
 
- - [ ] implement the rewindabe re-usable result iterator in goat-query,
-
  - [x] rewrite SELECT query using a graph for eager relations, allowing to
    recurse in repository dependency graph for eager loading,
 
@@ -131,6 +129,8 @@ Priority 2, industrialisation:
  - [ ] documentation.
 
 Priority 3, for later:
+
+ - [ ] implement the rewindabe re-usable result iterator in goat-query,
 
  - [ ] implement xml reader ? why exactly ?
 

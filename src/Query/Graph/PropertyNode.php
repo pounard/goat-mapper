@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Graph;
 
-class PropertyNode extends Node
+final class PropertyNode extends Node
 {
     protected string $propertyName;
 

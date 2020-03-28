@@ -6,56 +6,44 @@ namespace Goat\Mapper\Test\Unit\Query\Relation;
 
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Error\QueryError;
-use Goat\Mapper\Query\Entity\EntitySelectQuery;
 use Goat\Mapper\Tests\AbstractRepositoryTest;
 use Goat\Mapper\Tests\Mock\WithToOneInSourceRelation;
 use Goat\Mapper\Tests\Mock\WithToOneInTargetRelation;
 
 final class RelationQueryBuilderTest extends AbstractRepositoryTest
 {
-    private $previous;
-
-    protected function setUp()
-    {
-        $this->previous = EntitySelectQuery::doForceAllEagerRelationsToLoad(false);
-    }
-
-    protected function tearDown()
-    {
-        EntitySelectQuery::doForceAllEagerRelationsToLoad($this->previous ?? true);
-    }
-
     public function testKeyWithIdentifierMismatchRaiseError(): void
     {
         $manager = $this->createRepositoryManager();
-        $builder = $manager->getQueryBuilderFactory()->relation();
+        $query = $manager
+            ->getQueryBuilderFactory()
+            ->related(
+                WithToOneInTargetRelation::class,
+                'relatedEntity',
+                [new Identifier(['foo', 2])]
+            )
+        ;
 
         self::expectException(QueryError::class);
         self::expectExceptionMessageRegExp('/^Identifier.*not compatible.*/');
-
-        $builder->createFetchRelatedQuery(
-            WithToOneInTargetRelation::class,
-            'relatedEntity',
-            [
-                new Identifier(['foo', 2]),
-            ]
-        );
+        $query->build();
     }
 
     public function testSingleColumnWithKeyInTarget(): void
     {
         $manager = $this->createRepositoryManager();
-        $builder = $manager->getQueryBuilderFactory()->relation();
-
-        $queryBuilder = $builder->createFetchRelatedQuery(
-            WithToOneInTargetRelation::class,
-            'relatedEntity',
-            [
-                new Identifier([1]),
-                new Identifier([2]),
-                new Identifier([3])
-            ]
-        );
+        $query = $manager
+            ->getQueryBuilderFactory()
+            ->related(
+                WithToOneInTargetRelation::class,
+                'relatedEntity',
+                [
+                    new Identifier([1]),
+                    new Identifier([2]),
+                    new Identifier([3])
+                ]
+            )
+        ;
 
         self::assertSameSql(<<<SQL
 SELECT
@@ -68,24 +56,25 @@ WHERE (
     "to_one_in_source"."target_id" IN (?, ?, ?)
 )
 SQL
-            , $queryBuilder->build()
+            , $query->build()
         );
     }
 
     public function testSingleColumnWithKeyInSource(): void
     {
         $manager = $this->createRepositoryManager();
-        $builder = $manager->getQueryBuilderFactory()->relation();
-
-        $queryBuilder = $builder->createFetchRelatedQuery(
-            WithToOneInSourceRelation::class,
-            'relatedEntity',
-            [
-                new Identifier([1]),
-                new Identifier([2]),
-                new Identifier([3])
-            ]
-        );
+        $query = $manager
+            ->getQueryBuilderFactory()
+            ->related(
+                WithToOneInSourceRelation::class,
+                'relatedEntity',
+                [
+                    new Identifier([1]),
+                    new Identifier([2]),
+                    new Identifier([3])
+                ]
+            )
+        ;
 
         self::assertSameSql(<<<SQL
 SELECT
@@ -100,7 +89,7 @@ WHERE (
     "to_one_in_target"."id" IN (?, ?, ?)
 )
 SQL
-            , $queryBuilder->build()
+            , $query->build()
         );
     }
 
@@ -109,22 +98,23 @@ SQL
         self::markTestSkipped("Needs an entity for this.");
 
         $manager = $this->createRepositoryManager();
-        $builder = $manager->getQueryBuilderFactory()->relation();
-
-        $queryBuilder = $builder->createFetchRelatedQuery(
-            WithToOneInTargetRelation::class,
-            'relatedEntity',
-            [
-                new Identifier([1]),
-                new Identifier([2]),
-                new Identifier([3])
-            ]
-        );
+        $query = $manager
+            ->getQueryBuilderFactory()
+            ->related(
+                WithToOneInTargetRelation::class,
+                'relatedEntity',
+                [
+                    new Identifier([1]),
+                    new Identifier([2]),
+                    new Identifier([3])
+                ]
+            )
+        ;
 
         self::assertSameSql(<<<SQL
 WRITE ME 1
 SQL
-            , $queryBuilder->build()
+            , $query->build()
         );
     }
 
@@ -133,22 +123,23 @@ SQL
         self::markTestSkipped("Needs an entity for this.");
 
         $manager = $this->createRepositoryManager();
-        $builder = $manager->getQueryBuilderFactory()->relation();
-
-        $queryBuilder = $builder->createFetchRelatedQuery(
-            WithToOneInSourceRelation::class,
-            'relatedEntity',
-            [
-                new Identifier([1]),
-                new Identifier([2]),
-                new Identifier([3])
-            ]
-        );
+        $query = $manager
+            ->getQueryBuilderFactory()
+            ->related(
+                WithToOneInSourceRelation::class,
+                'relatedEntity',
+                [
+                    new Identifier([1]),
+                    new Identifier([2]),
+                    new Identifier([3])
+                ]
+            )
+        ;
 
         self::assertSameSql(<<<SQL
 WRITE ME 2
 SQL
-            , $queryBuilder->build()
+            , $query->build()
         );
     }
 }
