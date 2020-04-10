@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Goat\Mapper\Hydration\EntityHydrator;
 
 use Goat\Mapper\Definition\PrimaryKey;
-use Goat\Mapper\Definition\RepositoryDefinition;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Hydration\Proxy\ProxyFactory;
 use Goat\Mapper\Query\Relation\RelationFetcher;
 
@@ -15,11 +16,11 @@ final class EntityHydrator
     private EntityHydratorFactory $entityHydratorFactory;
     private ?PrimaryKey $primaryKey;
     private ProxyFactory $proxyFactory;
-    private RepositoryDefinition $definition;
+    private Entity $definition;
 
     public function __construct(
         callable $previous,
-        RepositoryDefinition $definition,
+        Entity $definition,
         EntityHydratorFactory $entityHydratorFactory,
         ProxyFactory $proxyFactory
     ) {
@@ -36,7 +37,9 @@ final class EntityHydrator
         $id = $this->primaryKey->createIdentifierFromRow($values);
 
         foreach ($this->definition->getRelations() as $relation) {
-            $propertyName = $relation->getPropertyName();
+            \assert($relation instanceof Relation);
+
+            $propertyName = $relation->getName();
 
             if (\array_key_exists($propertyName, $values)) {
                 // It was eagerly loaded.
@@ -53,7 +56,7 @@ final class EntityHydrator
                 $values[$propertyName] = $this
                     ->entityHydratorFactory
                     ->createHydrator(
-                        $relation->getClassName()
+                        $relation->getEntity()->getClassName()
                     )
                     ->hydrate(
                         $value,
@@ -63,7 +66,7 @@ final class EntityHydrator
                 continue;
             }
 
-            if ($relation->isMultiple) {
+            if ($relation->isMultiple()) {
                 // Easy one, fetcher will always return lazy collections.
                 // We don't care about proxifying it further.
                 $values[$propertyName] = $fetcher->collection($className, $propertyName, $id);
@@ -84,6 +87,8 @@ final class EntityHydrator
                 }
             );
         }
+
+        return $values;
     }
 
     public function hydrate(array $values, RelationFetcher $fetcher)

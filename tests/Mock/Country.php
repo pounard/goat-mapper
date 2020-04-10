@@ -27,7 +27,7 @@ class Country implements StaticEntityDefinition
      */
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('country_list', 'public');
+        $builder->setTableName('country_list');
         $builder->addProperty('code');
         $builder->addProperty('title', 'name');
         $builder->setPrimaryKey([

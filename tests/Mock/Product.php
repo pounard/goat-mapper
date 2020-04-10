@@ -47,7 +47,7 @@ class Product implements StaticEntityDefinition
      */
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('product', 'public');
+        $builder->setTableName('product');
         $builder->addProperty('id');
         $builder->addProperty('reference');
         $builder->addProperty('title');
@@ -56,7 +56,7 @@ class Product implements StaticEntityDefinition
             'id' => 'uuid',
         ]);
         $relation = $builder->addManyToManyRelation('tags', ProductTag::class);
-        $relation->setTargetTableName('tag', 'public');
+        $relation->setTargetTableName('tag');
         $relation->setSourceKey(['product_id' => 'uuid']);
         $relation->setTargetKey(['tag_id' => 'int']);
     }

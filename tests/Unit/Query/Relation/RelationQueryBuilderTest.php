@@ -7,8 +7,7 @@ namespace Goat\Mapper\Test\Unit\Query\Relation;
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Tests\AbstractRepositoryTest;
-use Goat\Mapper\Tests\Mock\WithToOneInSourceRelation;
-use Goat\Mapper\Tests\Mock\WithToOneInTargetRelation;
+use Goat\Mapper\Tests\Mock\WithManyToOneRelation;
 
 final class RelationQueryBuilderTest extends AbstractRepositoryTest
 {
@@ -18,7 +17,7 @@ final class RelationQueryBuilderTest extends AbstractRepositoryTest
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
-                WithToOneInTargetRelation::class,
+                WithManyToOneRelation::class,
                 'relatedEntity',
                 [new Identifier(['foo', 2])]
             )
@@ -35,7 +34,7 @@ final class RelationQueryBuilderTest extends AbstractRepositoryTest
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
-                WithToOneInTargetRelation::class,
+                WithManyToOneRelation::class,
                 'relatedEntity',
                 [
                     new Identifier([1]),
@@ -66,7 +65,7 @@ SQL
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
-                WithToOneInSourceRelation::class,
+                WithManyToOneRelation::class,
                 'relatedEntity',
                 [
                     new Identifier([1]),
@@ -101,7 +100,7 @@ SQL
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
-                WithToOneInTargetRelation::class,
+                WithManyToOneRelation::class,
                 'relatedEntity',
                 [
                     new Identifier([1]),
@@ -126,7 +125,7 @@ SQL
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
-                WithToOneInSourceRelation::class,
+                WithManyToOneRelation::class,
                 'relatedEntity',
                 [
                     new Identifier([1]),

@@ -30,7 +30,7 @@
 
     <php>
         <ini name="error_reporting" value="-1" />
-        <env name="ENABLE_APCU" value="1" />
+        <env name="ENABLE_APCU" value="0" />
         <env name="ENABLE_EXT_PGSQL" value="1" />
         <env name="ENABLE_PDO" value="1" />
         <env name="ENABLE_SECURITY" value="0" />

@@ -5,20 +5,39 @@ declare(strict_types=1);
 namespace Goat\Mapper\Tests\Unit\Definition;
 
 use Goat\Mapper\Definition\Builder\DefinitionBuilder;
+use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
+use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
+use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
 use Goat\Mapper\Error\ConfigurationError;
-use Goat\Mapper\Tests\Mock\WithToManyInMappingRelation;
+use Goat\Mapper\Tests\Mock\WithManyToManyBarRelation;
+use Goat\Mapper\Tests\Mock\WithManyToManyFooRelation;
+use Goat\Mapper\Tests\Mock\WithManyToOneRelation;
+use Goat\Mapper\Tests\Mock\WithOneToManyRelation;
 use Goat\Mapper\Tests\Mock\WithoutRelation;
 use PHPUnit\Framework\TestCase;
 
 final class DefinitionBuilderTest extends TestCase
 {
+    private function createDefinitionRegistry(): DefinitionRegistry
+    {
+        return new CacheDefinitionRegistry(
+            new ChainDefinitionRegistry([
+                new StaticEntityDefinitionRegistry(),
+            ])
+        );
+    }
+
     public function testSetTableName(): void
     {
         $builder = new DefinitionBuilder(WithoutRelation::class);
 
         $builder->setTableName('without_relation', 'foo');
 
-        $definition = $builder->compile();
+        $definition = $builder->compile(
+            $this->createDefinitionRegistry()
+        );
+
         self::assertSame('without_relation', $definition->getTable()->getName());
         self::assertSame('foo', $definition->getTable()->getSchema());
     }
@@ -29,7 +48,10 @@ final class DefinitionBuilderTest extends TestCase
 
         $builder->setTableName('without_relation');
 
-        $definition = $builder->compile();
+        $definition = $builder->compile(
+            $this->createDefinitionRegistry()
+        );
+
         self::assertSame('without_relation', $definition->getTable()->getName());
         self::assertNull($definition->getTable()->getSchema());
     }
@@ -38,7 +60,10 @@ final class DefinitionBuilderTest extends TestCase
     {
         $builder = new DefinitionBuilder(WithoutRelation::class);
 
-        $definition = $builder->compile();
+        $definition = $builder->compile(
+            $this->createDefinitionRegistry()
+        );
+
         self::assertSame('goat_mapper_tests_mock_withoutrelation', $definition->getTable()->getName());
     }
 
@@ -50,7 +75,10 @@ final class DefinitionBuilderTest extends TestCase
         $builder->addProperty('someProperty', 'some_property');
         $builder->addProperty('bla');
 
-        $definition = $builder->compile();
+        $definition = $builder->compile(
+            $this->createDefinitionRegistry()
+        );
+
         self::assertSame(
             [
                 'id' => 'id',
@@ -67,6 +95,31 @@ final class DefinitionBuilderTest extends TestCase
         new DefinitionBuilder('WakaWakaHeHe');
     }
 
+    public function testSetPrimaryKey()
+    {
+        $builder = new DefinitionBuilder(WithoutRelation::class);
+
+        $builder->addProperty('id');
+        $builder->addProperty('bla');
+
+        $builder->setPrimaryKey([
+            'id' => 'uuid',
+        ]);
+
+        $definition = $builder->compile(
+            $this->createDefinitionRegistry()
+        );
+
+        self::assertSame(
+            ['id'],
+            $definition->getPrimaryKey()->getColumnNames()
+        );
+        self::assertSame(
+            'uuid',
+            $definition->getPrimaryKey()->getColumns()[0]->getType()
+        );
+    }
+
     public function testSetPrimaryKeyWithoutPropertyRaiseError(): void
     {
         $builder = new DefinitionBuilder(WithoutRelation::class);
@@ -77,7 +130,10 @@ final class DefinitionBuilderTest extends TestCase
 
         self::expectException(ConfigurationError::class);
         self::expectExceptionMessageRegExp('/is not in defined in properties/');
-        $builder->compile();
+
+        $builder->compile(
+            $this->createDefinitionRegistry()
+        );
     }
 
     public function testSetPrimaryKeyWithNumericKeysRaiseError(): void
@@ -90,17 +146,6 @@ final class DefinitionBuilderTest extends TestCase
         ]);
     }
 
-    public function testSetPrimaryKeyAfterCompileRaiseError(): void
-    {
-        $builder = new DefinitionBuilder(WithoutRelation::class);
-
-        $builder->compile();
-
-        self::expectException(ConfigurationError::class);
-        self::expectExceptionMessageRegExp('/already compiled/');
-        $builder->setPrimaryKey([]);
-    }
-
     public function testSetPrimaryKeyWithNonStringTypeRaiseError(): void
     {
         $builder = new DefinitionBuilder(WithoutRelation::class);
@@ -111,79 +156,65 @@ final class DefinitionBuilderTest extends TestCase
         ]);
     }
 
-    public function testCreateAnArbitraryRelationPropagatesLazyValues(): void
-    {
-        $builder = new DefinitionBuilder(WithoutRelation::class);
-
-        $relation = $builder->addOneToManyRelation('entities', WithToManyInMappingRelation::class);
-        $relation->keyIsInTargetTable();
-        $relation->setTargetTableName('target_table');
-        $relation->setTargetKey(['target_id' => 'int']);
-
-        $builder->addProperty('id');
-        $builder->setPrimaryKey([
-            'id' => 'int',
-        ]);
-        $builder->setTableName('source_table');
-
-        $definition = $builder->compile();
-        $relation = $definition->getRelation('entities');
-        self::assertSame(['id'], $relation->getSourceKey()->getColumnNames());
-        self::assertSame(['target_id'], $relation->getTargetKey()->getColumnNames());
-        self::assertSame('source_table', $relation->getSourceTable()->getName());
-        self::assertSame('target_table', $relation->getTargetTable()->getName());
-    }
-
     public function testCreateRelationWithNonExistingClassRaiseError(): void
     {
         $builder = new DefinitionBuilder(WithoutRelation::class);
 
         self::expectException(ConfigurationError::class);
         self::expectExceptionMessageRegExp('/does not exist/');
-        $builder->addManyToOneRelation('relatedEntity', 'DansTesClasseurs');
+        $builder->addAnyToOneRelation('relatedEntity', 'DansTesClasseurs');
+    }
+
+    /**
+     * @deprecated I'm not sure whether or not keeping this test.
+     */
+    public function testSetPrimaryKeyAfterCompileRaiseError(): void
+    {
+        self::markTestIncomplete("Implement me");
+
+        $builder = new DefinitionBuilder(WithoutRelation::class);
+
+        $builder->compile(
+            $this->createDefinitionRegistry()
+        );
+
+        self::expectException(ConfigurationError::class);
+        self::expectExceptionMessageRegExp('/already compiled/');
+
+        $builder->compile(
+            $this->createDefinitionRegistry()
+        );
     }
 
     public function testCreateRelationOnExistingPropertyRaiseError(): void
     {
-        $builder = new DefinitionBuilder(WithoutRelation::class);
+        $builder = new DefinitionBuilder(WithManyToManyFooRelation::class);
 
-        $builder->addProperty('relatedEntity');
+        $builder->addProperty('relation');
 
         self::expectException(ConfigurationError::class);
         self::expectExceptionMessageRegExp('/is not a relation/');
-        $builder->addManyToOneRelation('relatedEntity', WithToManyInMappingRelation::class);
+        $builder->addManyToManyRelation('relation', WithManyToManyBarRelation::class);
     }
 
     public function testCreateRelationTwiceRaiseError(): void
     {
-        $builder = new DefinitionBuilder(WithoutRelation::class);
+        $builder = new DefinitionBuilder(WithManyToOneRelation::class);
 
-        $builder->addOneToManyRelation('relatedEntity', WithToManyInMappingRelation::class);
+        $builder->addOneToManyRelation('relatedCollection', WithOneToManyRelation::class);
 
         self::expectException(ConfigurationError::class);
         self::expectExceptionMessageRegExp('/is already defined/');
-        $builder->addManyToOneRelation('relatedEntity', WithToManyInMappingRelation::class);
+        $builder->addOneToManyRelation('relatedCollection', WithOneToManyRelation::class);
     }
 
-    public function testSetPrimaryKey()
+    public function testAddPropertyThatDoesNotExistOnClassRaiseError(): void
     {
-        $builder = new DefinitionBuilder(WithoutRelation::class);
+        self::markTestIncomplete("This is a placeholder for a future feature.");
+    }
 
-        $builder->addProperty('id');
-        $builder->addProperty('bla');
-
-        $builder->setPrimaryKey([
-            'id' => 'uuid',
-        ]);
-
-        $definition = $builder->compile();
-        self::assertSame(
-            ['id'],
-            $definition->getPrimaryKey()->getColumnNames()
-        );
-        self::assertSame(
-            'uuid',
-            $definition->getPrimaryKey()->getColumns()[0]->getType()
-        );
+    public function testAddRelationWithPropertyThatDoesNotExistOnClassRaiseError(): void
+    {
+        self::markTestIncomplete("This is a placeholder for a future feature.");
     }
 }

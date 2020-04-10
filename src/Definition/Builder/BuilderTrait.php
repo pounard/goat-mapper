@@ -7,10 +7,22 @@ namespace Goat\Mapper\Definition\Builder;
 use Goat\Mapper\Definition\Column;
 use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\PrimaryKey;
+use Goat\Mapper\Definition\Graph\EntityProxy;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\ConfigurationError;
 
 trait BuilderTrait
 {
+    private function ensureKeysCompatibility(Key $a, Key $b): void
+    {
+        if (!$a->isCompatible($b)) {
+            throw new ConfigurationError(\sprintf(
+                "Relation for property '%s' source key is not compatible with target key.",
+                __CLASS__
+            ));
+        }
+    }
+
     private function ensureKeyIsValid(array $propertyTypeMap): void
     {
         foreach ($propertyTypeMap as $propertyName => $type) {
@@ -20,6 +32,13 @@ trait BuilderTrait
             if (!\is_string($type)) {
                 throw new ConfigurationError("Primary key property types must be strings");
             }
+        }
+    }
+
+    private function ensureClassExists(string $className): void
+    {
+        if (!\class_exists($className)) {
+            throw new ConfigurationError(\sprintf("Class '%s' does not exist", $className));
         }
     }
 
@@ -60,5 +79,12 @@ trait BuilderTrait
     private function doCompilePrimaryKey(array $source, ?array $nameMap = null): PrimaryKey
     {
         return new PrimaryKey($this->doCompileColumnList($source, $nameMap));
+    }
+
+    private function createProxy(string $className, DefinitionRegistry $definitionRegistry): EntityProxy
+    {
+        return new EntityProxy($className, static function () use ($className, $definitionRegistry) {
+            return $definitionRegistry->getDefinition($className);
+        });
     }
 }

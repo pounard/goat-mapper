@@ -2,32 +2,83 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Definition;
+namespace Goat\Mapper\Definition\Graph;
 
-/**
- * @todo create JoinTable object and make this extend it or compose with it
- */
-class Relation
+class Relation extends Property
 {
-    /** One to one (remote key is unique) */
     const MODE_ONE_TO_ONE = 1;
-
-    /** One to many (remote key is not unique) */
     const MODE_ONE_TO_MANY = 2;
-
-    /** Many to one (local key is unique) */
     const MODE_MANY_TO_ONE = 3;
-
-    /** Many to many (local key is not unique) */
     const MODE_MANY_TO_MANY = 4;
 
-    /** Target entity primary key is in source table */
+    private int $mode;
+    private Entity $entity;
+
+    public function __construct(Entity $entity, string $name, int $mode)
+    {
+        if ($mode < 1 || 4 < $mode) {
+            throw new \InvalidArgumentException(\sprintf("Mode must be one of the %s::MODE_* constants.", __CLASS__));
+        }
+
+        parent::__construct($name);
+
+        $this->entity = $entity;
+        $this->mode = $mode;
+    }
+
+    /**
+     * Will the other side be a collection?
+     */
+    public function isMultiple(): bool
+    {
+        return $this->mode === self::MODE_MANY_TO_MANY || $this->mode === self::MODE_ONE_TO_MANY;
+    }
+
+    /**
+     * Get relation mode.
+     */
+    public function getMode(): int
+    {
+        return $this->mode;
+    }
+
+    /**
+     * Get related entity.
+     */
+    public function getEntity(): Entity
+    {
+        return $this->entity;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getChildren(): iterable
+    {
+        return [$this->entity];
+    }
+}
+
+/* 
+    /** One to one (remote key is unique) * /
+    const MODE_ONE_TO_ONE = 1;
+
+    /** One to many (remote key is not unique) * /
+    const MODE_ONE_TO_MANY = 2;
+
+    /** Many to one (local key is unique) * /
+    const MODE_MANY_TO_ONE = 3;
+
+    /** Many to many (local key is not unique) * /
+    const MODE_MANY_TO_MANY = 4;
+
+    /** Target entity primary key is in source table * /
     const KEY_IN_SOURCE = 1;
 
-    /** Target entity primary key is in target table */
+    /** Target entity primary key is in target table * /
     const KEY_IN_TARGET = 2;
 
-    /** Target entity primary key is in mapping table */
+    /** Target entity primary key is in mapping table * /
     const KEY_IN_MAPPING = 3;
 
     private string $className;
@@ -98,65 +149,4 @@ class Relation
         $this->targetKey = $targetKey;
         $this->targetTable = $targetTable;
     }
-
-    public function getClassName(): string
-    {
-        return $this->className;
-    }
-
-    /* @todo Not sure this shoud exist on this class, it makes it aware of its context */
-    public function getPropertyName(): string
-    {
-        return $this->propertyName;
-    }
-
-    public function getMode(): int
-    {
-        return $this->mode;
-    }
-
-    public function getKeyIn(): int
-    {
-        return $this->keyIn;
-    }
-
-    /**
-     * Will there be more than one value in the other side?
-     */
-    public function isMultiple(): bool
-    {
-        return $this->mode === self::MODE_MANY_TO_MANY || $this->mode === self::MODE_ONE_TO_MANY;
-    }
-
-    /**
-     * Get target table
-     */
-    public function getTargetTable(): Table
-    {
-        return $this->targetTable;
-    }
-
-    /**
-     * Get source table
-     */
-    public function getSourceTable(): Table
-    {
-        return $this->sourceTable;
-    }
-
-    /**
-     * Get key in target table
-     */
-    public function getTargetKey(): Key
-    {
-        return $this->targetKey;
-    }
-
-    /**
-     * Get key in source table
-     */
-    public function getSourceKey(): Key
-    {
-        return $this->sourceKey;
-    }
-}
+ */

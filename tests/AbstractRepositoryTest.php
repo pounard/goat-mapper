@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
-use Goat\Mapper\Definition\Registry\ArrayDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
@@ -17,16 +16,17 @@ use Goat\Mapper\Hydration\Proxy\ProxyFactory;
 use Goat\Mapper\Repository\DefaultRepositoryManager;
 use Goat\Mapper\Repository\RepositoryManager;
 use Goat\Mapper\Tests\Mock\Address;
+use Goat\Mapper\Tests\Mock\Advisor;
 use Goat\Mapper\Tests\Mock\Client;
 use Goat\Mapper\Tests\Mock\Country;
 use Goat\Mapper\Tests\Mock\Product;
 use Goat\Mapper\Tests\Mock\ProductTag;
+use Goat\Mapper\Tests\Mock\Service;
+use Goat\Mapper\Tests\Mock\WithManyToManyBarRelation;
+use Goat\Mapper\Tests\Mock\WithManyToManyFooRelation;
+use Goat\Mapper\Tests\Mock\WithManyToOneRelation;
 use Goat\Mapper\Tests\Mock\WithMultipleColumnPrimaryKey;
-use Goat\Mapper\Tests\Mock\WithToManyInMappingRelation;
-use Goat\Mapper\Tests\Mock\WithToManyInTargetRelation;
-use Goat\Mapper\Tests\Mock\WithToOneInMappingRelation;
-use Goat\Mapper\Tests\Mock\WithToOneInSourceRelation;
-use Goat\Mapper\Tests\Mock\WithToOneInTargetRelation;
+use Goat\Mapper\Tests\Mock\WithOneToManyRelation;
 use Goat\Mapper\Tests\Mock\WithoutRelation;
 use Goat\Query\Query;
 use Goat\Runner\Runner;
@@ -70,18 +70,19 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         return [
             // Functional testing
             Country::class,
+            Service::class,
+            Advisor::class,
             Client::class,
             Address::class,
             Product::class,
             ProductTag::class,
             // Unit testing
+            WithManyToManyBarRelation::class,
+            WithManyToManyFooRelation::class,
+            WithManyToOneRelation::class,
             WithMultipleColumnPrimaryKey::class,
+            WithOneToManyRelation::class,
             WithoutRelation::class,
-            WithToManyInMappingRelation::class,
-            WithToManyInTargetRelation::class,
-            WithToOneInMappingRelation::class,
-            WithToOneInTargetRelation::class,
-            WithToOneInSourceRelation::class,
         ];
     }
 
@@ -164,18 +165,24 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 
     private function createDefinitionRegistry(): DefinitionRegistry
     {
+        /*
         $userArrayData = [];
         foreach (self::getTestEntityClasses() as $className) {
             if (\method_exists($className, 'toDefinitionArray')) {
                 $userArrayData[$className] = \call_user_func([$className, 'toDefinitionArray']);
             }
         }
+         */
 
-        return new CacheDefinitionRegistry(
+        $definitionRegistry = new CacheDefinitionRegistry(
             new ChainDefinitionRegistry([
-                new StaticEntityDefinitionRegistry(),
-                new ArrayDefinitionRegistry($userArrayData),
+                $staticEntityDefinitionRegistry = new StaticEntityDefinitionRegistry(),
+                // new LegacyArrayDefinitionRegistry($userArrayData),
             ])
         );
+
+        $staticEntityDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
+
+        return $definitionRegistry;
     }
 }

@@ -7,7 +7,7 @@ namespace Goat\Mapper\Tests\Mock;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-/* final */ class WithToManyInTargetRelation
+/* final */ class WithManyToManyBarRelation
 {
     /** @var UuidInterface */
     private $id;
@@ -18,7 +18,7 @@ use Ramsey\Uuid\UuidInterface;
     public static function toDefinitionArray(): array
     {
         return [
-            'table' => 'to_many_in_target',
+            'table' => 'to_many_in_mapping',
             'primary_key' => [
                 'id' => 'uuid',
             ],
@@ -30,10 +30,10 @@ use Ramsey\Uuid\UuidInterface;
                     'class_name' => WithoutRelation::class,
                     'property_name' => 'relatedCollection',
                     'table' => 'without_relation',
-                    'mode' => 'one_to_many',
-                    'key_in' => 'target',
+                    'mode' => 'many_to_many',
+                    'key_in' => 'mapping',
                     'target_key' => [
-                        'target_id' => 'uuid',
+                        'id' => 'uuid',
                     ],
                 ],
             ],
@@ -44,14 +44,14 @@ use Ramsey\Uuid\UuidInterface;
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE {$schema}.to_many_in_target (
+CREATE TABLE {$schema}.to_many_in_mapping (
     id UUID NOT NULL,
     PRIMARY KEY (id)
 )
 SQL
             ,
             'mysql' => <<<SQL
-CREATE TABLE to_many_in_target (
+CREATE TABLE to_many_in_mapping (
     id VARCHAR(36) NOT NULL,
     PRIMARY KEY (id)
 )

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Repository;
 
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Runner\Runner;
-use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 
 interface RepositoryManager
 {

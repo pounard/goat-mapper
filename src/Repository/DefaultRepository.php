@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Repository;
 
-use Goat\Mapper\Definition\RepositoryDefinition;
+use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Error\EntityDoesNotExistError;
+use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
-use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Runner\Runner;
 
 /**
@@ -15,11 +15,11 @@ use Goat\Runner\Runner;
  */
 class DefaultRepository implements Repository
 {
-    private RepositoryDefinition $definition;
+    private Entity $definition;
     private RepositoryManager $manager;
     private string $className;
 
-    public function __construct(RepositoryDefinition $definition, RepositoryManager $manager)
+    public function __construct(Entity $definition, RepositoryManager $manager)
     {
         $this->className = $definition->getClassName();
         $this->definition = $definition;
@@ -42,7 +42,7 @@ class DefaultRepository implements Repository
     /**
      * {@inheritdoc}
      */
-    public final function getDefinition(): RepositoryDefinition
+    public final function getDefinition(): Entity
     {
         return $this->definition;
     }

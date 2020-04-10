@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Goat\Mapper\Repository;
 
 use Goat\Mapper\Definition\Identifier;
-use Goat\Mapper\Definition\RepositoryDefinition;
+use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Error\RelationDoesNotExistError;
-use Goat\Mapper\Query\Graph\EntityQuery;
+use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Runner\Runner;
 
 /**
@@ -23,14 +23,14 @@ interface Repository
     /**
      * Get repository definition.
      */
-    public function getDefinition(): RepositoryDefinition;
+    public function getDefinition(): Entity;
 
     /**
      * Get repository for relation
      *
      * @param string $relation
-     *   Anything that RepositoryDefinition::getRelation() accepts.
-     * @see RepositoryDefinition::getRelation()
+     *   Anything that Entity::getRelation() accepts.
+     * @see Entity::getRelation()
      *   For $relation parameter definition.
      * @throws RelationDoesNotExistError
      *   If property does not exist or is not a relation.

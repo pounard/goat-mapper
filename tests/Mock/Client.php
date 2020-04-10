@@ -14,6 +14,8 @@ class Client implements StaticEntityDefinition
     private string $firstname;
     private string $lastname;
     private ?iterable $addresses;
+    private UuidInterface $advisorId;
+    private ?Advisor $personalAdvisor;
 
     public function getId(): UuidInterface
     {
@@ -36,21 +38,29 @@ class Client implements StaticEntityDefinition
         return $this->addresses ?? [];
     }
 
+    public function getPersonalAdvisor(): ?Advisor
+    {
+        return $this->personalAdvisor;
+    }
+
     /**
      * {@inheritdoc}
      */
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('client', 'public');
+        $builder->setTableName('client');
         $builder->addProperty('id');
         $builder->addProperty('firstname');
         $builder->addProperty('lastname');
+        $builder->addProperty('advisorId', 'advisor_id');
         $builder->setPrimaryKey([
             'id' => 'uuid',
         ]);
+
+        $relation = $builder->addAnyToOneRelation('personalAdvisor', Advisor::class);
+        $relation->setSourceKey(['advisorId' => 'uuid']);
+
         $relation = $builder->addOneToManyRelation('addresses', Address::class);
-        $relation->keyIsInTargetTable();
-        $relation->setTargetTableName('client_address', 'public');
         $relation->setTargetKey(['clientId' => 'uuid']);
     }
 
@@ -62,7 +72,11 @@ CREATE TABLE {$schema}.client (
     id UUID NOT NULL,
     firstname VARCHAR(512) NOT NULL,
     lastname VARCHAR(512) NOT NULL,
-    PRIMARY KEY (id)
+    advisor_id UUID DEFAULT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (advisor_id)
+        REFERENCES {$schema}.salesman (id)
+        ON DELETE SET NULL
 )
 SQL
             ,
@@ -71,8 +85,11 @@ CREATE TABLE client (
     id VARCHAR(36) NOT NULL,
     firstname VARCHAR(512) NOT NULL,
     lastname VARCHAR(512) NOT NULL,
-    PRIMARY KEY (id)
-)
+    advisor_id VARCHAR(36) DEFAULT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (advisor_id)
+        REFERENCES salesman (id)
+        ON DELETE SET NULL
 SQL
         ];
     }

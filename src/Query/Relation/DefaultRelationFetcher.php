@@ -26,7 +26,9 @@ final class DefaultRelationFetcher implements RelationFetcher
     {
         return $this
             ->queryBuilderFactory
-            ->createFetchRelatedQuery($className, $propertyName, [$id])
+            ->related($className, $propertyName, [$id])
+            ->build()
+            ->range(0, 1)
             ->execute()
             ->fetch()
         ;
@@ -39,8 +41,8 @@ final class DefaultRelationFetcher implements RelationFetcher
     {
         return new DefaultCollection(function () use ($className, $propertyName, $id) {
             $result = $this
-                ->relationQueryBuilder
-                ->createFetchRelatedQuery($className, $propertyName, [$id])
+                ->queryBuilderFactory
+                ->related($className, $propertyName, [$id])
                 ->execute()
             ;
 
@@ -57,8 +59,8 @@ final class DefaultRelationFetcher implements RelationFetcher
     public function bulk(string $className, string $propertyName, array $identifiers): ResultSet
     {
         $result = $this
-            ->relationQueryBuilder
-            ->createFetchRelatedQuery($className, $propertyName, $identifiers)
+            ->queryBuilderFactory
+            ->related($className, $propertyName, $identifiers)
             ->execute()
         ;
 

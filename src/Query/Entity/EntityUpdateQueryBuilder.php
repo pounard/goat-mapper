@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Error\PropertyDoesNotExistError;
 use Goat\Mapper\Error\PropertyError;
 use Goat\Mapper\Repository\Repository;
@@ -14,14 +13,11 @@ use Goat\Runner\ResultIterator;
 
 class EntityUpdateQueryBuilder
 {
-    private Repository $repository;
-    private RepositoryDefinition $definition;
     private ?UpdateQuery $query = null;
 
     public function __construct(Repository $repository, ?string $primaryTableAlias = null)
     {
-        $this->repository = $repository;
-        $this->definition = $repository->getDefinition();
+        throw new \Exception("Implement me.");
     }
 
     /**
@@ -59,7 +55,7 @@ class EntityUpdateQueryBuilder
     public function condition($propertyNameOrCallack, $value = null): self
     {
         if (\is_string($propertyNameOrCallack)) {
-            if ($columnName = $this->definition->getColumn($propertyNameOrCallack)) {
+            if ($columnName = $this->definition->getColumnName($propertyNameOrCallack)) {
                 $propertyNameOrCallack = $columnName;
             }
         }
@@ -82,7 +78,7 @@ class EntityUpdateQueryBuilder
     public function set($propertyName, $value): self
     {
         $this->getQuery()->set(
-            $this->definition->getColumn($propertyName) ?? $propertyName,
+            $this->definition->getColumnName($propertyName) ?? $propertyName,
             $value
         );
 
@@ -104,7 +100,7 @@ class EntityUpdateQueryBuilder
 
         foreach ($values as $propertyName => $value) {
             $query->set(
-                $this->definition->getColumn($propertyName)  ?? $propertyName,
+                $this->definition->getColumnName($propertyName)  ?? $propertyName,
                 $value
             );
         }

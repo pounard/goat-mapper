@@ -11,6 +11,6 @@ class Order implements StaticEntityDefinition
 {
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('order', 'public');
+        $builder->setTableName('order');
     }
 }

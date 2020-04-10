@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition\Registry;
 
-use Goat\Mapper\Error\RepositoryDoesNotExistError;
+use Goat\Mapper\Error\EntityDoesNotExistError;
 
 trait DefinitionRegistryTrait
 {
-    private function repositoryDoesNotExist(string $className): void
+    private function entityDoesNotExist(string $className): void
     {
-        throw new RepositoryDoesNotExistError(\sprintf("There is no known registery for class %s.", $className));
+        throw new EntityDoesNotExistError(\sprintf("There is no known registery for class %s.", $className));
     }
 }

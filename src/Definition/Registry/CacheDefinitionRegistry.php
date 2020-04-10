@@ -4,22 +4,19 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition\Registry;
 
-use Goat\Mapper\Definition\RepositoryDefinition;
-use Goat\Mapper\Error\RepositoryDoesNotExistError;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Error\EntityDoesNotExistError;
 
 final class CacheDefinitionRegistry implements DefinitionRegistry
 {
     use DefinitionRegistryTrait;
 
     private DefinitionRegistry $decorated;
-
     /** array<string,bool> */
     private array $misses = [];
-
-    /** @var array<string,RepositoryDefinition> */
+    /** @var array<string,Entity> */
     private array $hits = [];
 
-    /** @param DefinitionRegistry[] $instances */
     public function __construct(DefinitionRegistry $decorated)
     {
         $this->decorated = $decorated;
@@ -28,7 +25,7 @@ final class CacheDefinitionRegistry implements DefinitionRegistry
     /**
      * {@inheritdoc}
      */
-    public function getDefinition(string $className): RepositoryDefinition
+    public function getDefinition(string $className): Entity
     {
         if ($instance = ($this->hits[$className] ?? null)) {
             return $instance;
@@ -40,10 +37,10 @@ final class CacheDefinitionRegistry implements DefinitionRegistry
 
         try {
             return $this->hits[$className] = $this->decorated->getDefinition($className);
-        } catch (RepositoryDoesNotExistError $e) {
+        } catch (EntityDoesNotExistError $e) {
             $this->misses[$className] = true;
         }
 
-        $this->repositoryDoesNotExist($className);
+        $this->entityDoesNotExist($className);
     }
 }

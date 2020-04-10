@@ -6,7 +6,12 @@ namespace Goat\Mapper\Query\Entity;
 
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Key;
-use Goat\Mapper\Definition\Relation;
+use Goat\Mapper\Definition\Graph\Relation;
+use Goat\Mapper\Definition\Graph\RelationAnyToOne;
+use Goat\Mapper\Definition\Graph\RelationManyToMany;
+use Goat\Mapper\Definition\Graph\RelationOneToMany;
+use Goat\Mapper\Definition\Graph\RelationSimple;
+use Goat\Mapper\Error\QueryError;
 use Goat\Query\ExpressionColumn;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\SelectQuery;
@@ -37,30 +42,24 @@ final class QueryHelper
         string $targetTableAlias,
         bool $leftJoin = false
     ): void {
-        switch ($relation->getKeyIn()) {
-
-            case Relation::KEY_IN_SOURCE:
-            case Relation::KEY_IN_TARGET:
-                self::addJoinStatementDirect($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
-                break;
-
-            case Relation::KEY_IN_MAPPING:
-                self::addJoinStatementWithMappingTable($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
-                break;
+        if ($relation instanceof RelationAnyToOne || $relation instanceof RelationOneToMany) {
+            self::addJoinStatementForSimple($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
+        } else {
+            throw new QueryError(\sprintf("Unhandled relation type %s", \get_class($relation)));
         }
     }
 
     /**
      * Writes a direct JOIN statement.
      */
-    private static function addJoinStatementDirect(
+    private static function addJoinStatementForSimple(
         SelectQuery $query,
-        Relation $relation,
+        RelationSimple $relation,
         string $sourceTableAlias,
         string $targetTableAlias,
         bool $leftJoin = false
     ): void {
-        $table = $relation->getTargetTable();
+        $table = $relation->getEntity()->getTable();
         $tableExpression = ExpressionRelation::create($table->getName(), $targetTableAlias, $table->getSchema());
 
         $targetKeyColumnsMap = $relation->getTargetKey()->getColumnNames();
@@ -86,7 +85,7 @@ final class QueryHelper
      */
     private static function addJoinStatementWithMappingTable(
         SelectQuery $query,
-        Relation $relation,
+        RelationManyToMany $relation,
         string $sourceTableAlias,
         string $targetTableAlias,
         bool $leftJoin = false
@@ -117,25 +116,21 @@ final class QueryHelper
         string $targetTableAlias,
         bool $leftJoin = false
     ): void {
-        switch ($relation->getKeyIn()) {
-
-            case Relation::KEY_IN_SOURCE:
-            case Relation::KEY_IN_TARGET:
-                self::addReverseJoinStatementDirect($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
-                break;
-
-            case Relation::KEY_IN_MAPPING:
-                self::addReverseJoinStatementWithMappingTable($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
-                break;
+        if ($relation instanceof RelationSimple) {
+            self::addReverseJoinStatementForSimple($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
+        } else if ($relation instanceof RelationManyToMany) {
+            self::addReverseJoinStatementForManyToMany($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
+        } else {
+            throw new QueryError(\sprintf("Unhandled relation type %s", \get_class($relation)));
         }
     }
 
     /**
      * Writes a direct JOIN statement.
      */
-    private static function addReverseJoinStatementDirect(
+    private static function addReverseJoinStatementForSimple(
         SelectQuery $query,
-        Relation $relation,
+        RelationSimple $relation,
         string $sourceTableAlias,
         string $targetTableAlias,
         bool $leftJoin = false
@@ -164,9 +159,9 @@ final class QueryHelper
     /**
      * Write a JOIN statement using a mapping table.
      */
-    private static function addReverseJoinStatementWithMappingTable(
+    private static function addReverseJoinStatementForManyToMany(
         SelectQuery $query,
-        Relation $relation,
+        RelationManyToMany $relation,
         string $sourceTableAlias,
         string $targetTableAlias,
         bool $leftJoin = false

@@ -51,7 +51,7 @@ class Address implements StaticEntityDefinition
      */
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('client_address', 'public');
+        $builder->setTableName('client_address');
         $builder->addProperty('id');
         $builder->addProperty('clientId', 'client_id');
         $builder->addProperty('type');
@@ -59,20 +59,15 @@ class Address implements StaticEntityDefinition
         $builder->addProperty('line2');
         $builder->addProperty('locality');
         $builder->addProperty('zipCode', 'zipcode');
-        $builder->addProperty('countryCode');
+        $builder->addProperty('countryCode', 'country');
         $builder->setPrimaryKey([
             'id' => 'uuid',
         ]);
-        $relation = $builder->addManyToOneRelation('client', Client::class);
-        $relation->keyIsInSourceTable();
-        $relation->setTargetTableName('client', 'public');
+        $relation = $builder->addAnyToOneRelation('client', Client::class);
         $relation->setSourceKey(['clientId' => 'uuid']);
-        $relation->setTargetKey(['id' => 'uuid']);
-        $relation = $builder->addManyToOneRelation('country', Country::class);
-        $relation->keyIsInSourceTable();
-        $relation->setTargetTableName('country_list', 'public');
+        $relation = $builder->addAnyToOneRelation('country', Country::class);
         $relation->setSourceKey(['countryCode' => 'string']);
-        $relation->setTargetKey(['code' => 'string']);
+        $relation->setTargetKeyIfNotPrimaryKey(['code' => 'string']);
     }
 
     public static function toTableSchema(string $schema): array

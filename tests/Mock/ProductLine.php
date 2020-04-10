@@ -11,6 +11,6 @@ class ProductLine implements StaticEntityDefinition
 {
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('product_line', 'public');
+        $builder->setTableName('product_line');
     }
 }

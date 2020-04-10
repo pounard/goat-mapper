@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition\Registry;
 
-use Goat\Mapper\Definition\RepositoryDefinition;
-use Goat\Mapper\Error\RepositoryDoesNotExistError;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Error\EntityDoesNotExistError;
 
 final class ChainDefinitionRegistry implements DefinitionRegistry
 {
@@ -23,18 +23,18 @@ final class ChainDefinitionRegistry implements DefinitionRegistry
     /**
      * {@inheritdoc}
      */
-    public function getDefinition(string $className): RepositoryDefinition
+    public function getDefinition(string $className): Entity
     {
         foreach ($this->instances as $instance) {
             try {
                 return $instance->getDefinition($className);
-            } catch (RepositoryDoesNotExistError $e) {
-                // Silence the RepositoryDoesNotExistError but not others:
+            } catch (EntityDoesNotExistError $e) {
+                // Silence the EntityDoesNotExistError but not others:
                 // we must let configuration error passes so the user is
                 // aware of problems.
             }
         }
 
-        $this->repositoryDoesNotExist($className);
+        $this->entityDoesNotExist($className);
     }
 }

@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition\Builder;
 
-use Goat\Mapper\Definition\Relation;
-use Goat\Mapper\Definition\RepositoryDefinition;
-use Goat\Mapper\Definition\Table;
-use Goat\Mapper\Error\ConfigurationError;
 use Goat\Mapper\Definition\PrimaryKey;
+use Goat\Mapper\Definition\Table;
+use Goat\Mapper\Definition\Builder\Relation\AnyToOneDefinitionBuilder;
+use Goat\Mapper\Definition\Builder\Relation\ManyToManyDefinitionBuilder;
+use Goat\Mapper\Definition\Builder\Relation\OneToManyDefinitionBuilder;
+use Goat\Mapper\Definition\Builder\Relation\RelationDefinitionBuilder;
+use Goat\Mapper\Definition\Graph\DefaultEntity;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Definition\Graph\Relation;
+use Goat\Mapper\Definition\Graph\Value;
+use Goat\Mapper\Definition\Registry\DefinitionRegistry;
+use Goat\Mapper\Error\ConfigurationError;
 
 /**
  * Build definition for an entity.
@@ -20,13 +27,10 @@ final class DefinitionBuilder
     private string $className;
     private ?Table $table = null;
     private ?PrimaryKey $primaryKey = null;
-
     /** @var array<string,string> */
     private array $primaryKeyColumnMap = [];
-
     /** @var array<string,string> */
     private array $columnMap = [];
-
     /** @var array<string,RelationDefinitionBuilder> */
     private array $relationBuilders = [];
 
@@ -94,46 +98,44 @@ final class DefinitionBuilder
         }
     }
 
-    private function createRelationBuilder(string $propertyName, string $className, int $mode): RelationDefinitionBuilder
-    {
-        return $this->relationBuilders[$propertyName] = new RelationDefinitionBuilder(
+    public function addAnyToOneRelation(
+        string $propertyName,
+        string $className,
+        int $mode = Relation::MODE_MANY_TO_ONE
+    ): AnyToOneDefinitionBuilder {
+        $this->ensurePropertyCanHandleRelation($propertyName);
+
+        return $this->relationBuilders[$propertyName] = new AnyToOneDefinitionBuilder(
             $propertyName,
             $className,
-            // Those methods are lazy, because we can't guarantee that the user
-            // will call setTableName() or setPrimaryKey() before calling this
-            // method.
-            $this->lazy('compileTable'),
-            $this->lazy('compilePrimaryKey'),
             $mode
         );
     }
 
-    public function addOneToOneRelation(string $propertyName, string $className): RelationDefinitionBuilder
-    {
+    public function addOneToManyRelation(
+        string $propertyName,
+        string $className
+    ): OneToManyDefinitionBuilder {
         $this->ensurePropertyCanHandleRelation($propertyName);
 
-        return $this->createRelationBuilder($propertyName, $className, Relation::MODE_ONE_TO_ONE);
+        return $this->relationBuilders[$propertyName] = new OneToManyDefinitionBuilder(
+            $propertyName,
+            $className
+        );
     }
 
-    public function addOneToManyRelation(string $propertyName, string $className): RelationDefinitionBuilder
-    {
+    public function addManyToManyRelation(
+        string $propertyName,
+        string $className
+    ): ManyToManyDefinitionBuilder {
         $this->ensurePropertyCanHandleRelation($propertyName);
 
-        return $this->createRelationBuilder($propertyName, $className, Relation::MODE_ONE_TO_MANY);
-    }
+        throw new \Exception("Not implemeted yet.");
 
-    public function addManyToOneRelation(string $propertyName, string $className): RelationDefinitionBuilder
-    {
-        $this->ensurePropertyCanHandleRelation($propertyName);
-
-        return $this->createRelationBuilder($propertyName, $className, Relation::MODE_MANY_TO_ONE);
-    }
-
-    public function addManyToManyRelation(string $propertyName, string $className): RelationDefinitionBuilder
-    {
-        $this->ensurePropertyCanHandleRelation($propertyName);
-
-        return $this->createRelationBuilder($propertyName, $className, Relation::MODE_MANY_TO_MANY);
+        return $this->relationBuilders[$propertyName] = new ManyToManyDefinitionBuilder(
+            $propertyName,
+            $className
+        );
     }
 
     private function compilePrimaryKey(): PrimaryKey
@@ -154,13 +156,29 @@ final class DefinitionBuilder
         return $this->table;
     }
 
-    private function compileRelations(): array
+    private function compileRelations(DefinitionRegistry $definitionRegistry): array
     {
         $ret = [];
-
         foreach ($this->relationBuilders as $relationBuilder) {
             \assert($relationBuilder instanceof RelationDefinitionBuilder);
-            $ret[] = $relationBuilder->compile();
+
+            $ret[] = $relationBuilder->compile($definitionRegistry);
+        }
+
+        return $ret;
+    }
+
+    private function compileProperties(DefinitionRegistry $definitionRegistry, Entity $owner): array
+    {
+        $ret = [];
+        foreach ($this->columnMap as $propertyName => $columnName) {
+            $property = new Value($propertyName, $columnName, null);
+            $property->setOwner($owner);
+            $ret[] = $property;
+        }
+        foreach ($this->compileRelations($definitionRegistry) as $relation) {
+            $relation->setOwner($owner);
+            $ret[] = $relation;
         }
 
         return $ret;
@@ -169,14 +187,18 @@ final class DefinitionBuilder
     /**
      * Compile and get the fully working property name.
      */
-    public function compile()
+    public function compile(DefinitionRegistry $definitionRegistry): Entity
     {
-        return new RepositoryDefinition(
+        $entity = new DefaultEntity(
             $this->className,
-            $this->columnMap,
             $this->compileTable(),
             $this->compilePrimaryKey(),
-            $this->compileRelations(),
         );
+
+        $entity->setProperties(
+            $this->compileProperties($definitionRegistry, $entity)
+        );
+
+        return $entity;
     }
 }

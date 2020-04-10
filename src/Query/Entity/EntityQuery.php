@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Query\Graph;
+namespace Goat\Mapper\Query\Entity;
 
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
@@ -10,6 +10,10 @@ use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Hydration\Collection\Collection;
 use Goat\Mapper\Hydration\Collection\EmptyCollection;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
+use Goat\Mapper\Query\Graph\Node;
+use Goat\Mapper\Query\Graph\RootNode;
+use Goat\Mapper\Query\Graph\Source;
+use Goat\Mapper\Query\Graph\Traverser;
 use Goat\Mapper\Query\Relation\RelationFetcher;
 use Goat\Mapper\Query\Relation\ResultSet;
 use Goat\Query\ExpressionRelation;
@@ -19,18 +23,17 @@ use Goat\Runner\Runner;
 
 class EntityQuery
 {
+    /** @var DefinitionRegistry */
     private DefinitionRegistry $definitionRegistry;
     private EntityHydratorFactory $entityHydratorFactory;
     private ?SelectQuery $query;
+    /** @var RootNode */
     private RootNode $rootNode;
     private Runner $runner;
-
     /** @var array<string,string> */
     private array $aliases = [];
-
     /** @var array<string,string> */
     private array $aliasPathMap = [];
-
     /** @var array<string,bool> */
     private array $circularReferenceBreaker = [];
 
@@ -170,6 +173,9 @@ class EntityQuery
             ->getRelation($propertyName)
         ;
 
+        // Relation could be a class name.
+        $propertyName = $relation->getName();
+
         // Break eager loading for to-many relations, using a prefetcher
         // will do the job otherwise. The N+1 problem stops where N = 1 with
         // to many relations, problem is much more complex for those.
@@ -186,10 +192,12 @@ class EntityQuery
             ));
         }
 
-        $child = $node->upsert($propertyName, $relation->getClassName());
+        $entity = $relation->getEntity();
+
+        $child = $node->upsert($propertyName, $entity->getClassName());
         $child->toggleLoad(true);
         // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($relation->getTargetTable()->getName()));
+        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
 
         if ($path) {
             $this->doAddRecursion($child, $path);
@@ -207,6 +215,9 @@ class EntityQuery
             ->getRelation($propertyName)
         ;
 
+        // Relation could be a class name.
+        $propertyName = $relation->getName();
+
         if ($this->isCircularDependency($parentClassName, $propertyName)) {
             throw new QueryError(\sprintf(
                 "Circular dependency requested for relation '%s' of class %s",
@@ -215,10 +226,12 @@ class EntityQuery
             ));
         }
 
-        $child = $node->upsert($propertyName, $relation->getClassName());
+        $entity = $relation->getEntity();
+
+        $child = $node->upsert($propertyName, $entity->getClassName());
         $child->toggleMatch(true);
         // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($relation->getTargetTable()->getName()));
+        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
 
         if ($path) {
             $this->doMatchRecursion($child, $path, $expression);

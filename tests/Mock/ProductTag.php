@@ -27,7 +27,7 @@ class ProductTag implements StaticEntityDefinition
      */
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('tag', 'public');
+        $builder->setTableName('tag');
         $builder->addProperty('name');
         $builder->setPrimaryKey([
             'name' => 'string',

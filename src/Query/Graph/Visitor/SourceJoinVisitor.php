@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Graph\Visitor;
 
-use Goat\Mapper\Definition\Relation;
+use Goat\Mapper\Definition\Graph\Relation;
+use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Entity\QueryHelper;
-use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Mapper\Query\Graph\RootNode;
 
 class SourceJoinVisitor implements RootVisitor

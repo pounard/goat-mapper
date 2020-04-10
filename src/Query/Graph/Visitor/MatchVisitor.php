@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Graph\Visitor;
 
-use Goat\Mapper\Query\Graph\EntityQuery;
+use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Graph\Node;
 use Goat\Mapper\Query\Graph\PropertyNode;
 use Goat\Mapper\Query\Graph\RootNode;
@@ -40,7 +40,7 @@ class MatchVisitor extends AbstractVisitor
         $targetDefinition = $context->getDefinitionRegistry()->getDefinition($node->getClassName());
 
         foreach ($node->getConditions() as $propertyName => $expressions) {
-            if ($columnName = $targetDefinition->getColumn($propertyName)) {
+            if ($columnName = $targetDefinition->getColumnName($propertyName)) {
                 foreach ($expressions as $expression) {
                     $query->condition(
                         ExpressionColumn::create($columnName, $targetTableAlias),

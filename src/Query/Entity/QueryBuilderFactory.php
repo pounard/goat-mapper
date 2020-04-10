@@ -8,7 +8,6 @@ use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
-use Goat\Mapper\Query\Graph\EntityQuery;
 use Goat\Query\QueryError;
 use Goat\Runner\Runner;
 

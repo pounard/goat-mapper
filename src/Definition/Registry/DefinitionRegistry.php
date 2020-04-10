@@ -4,20 +4,13 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition\Registry;
 
-use Goat\Mapper\Definition\RepositoryDefinition;
-use Goat\Mapper\Error\InvalidRepositoryDefinitionError;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Error\EntityDoesNotExistError;
 
-/**
- * This component is meant to be plug project's entities definition into this
- * API, allowing for repository definitions to be dumped in a performant fashion
- * for very quick repository definition creation.
- *
- * @todo implementation that generates code for hydrating definition (using new class(...)).
- */
 interface DefinitionRegistry
 {
     /**
-     * @throws InvalidRepositoryDefinitionError
+     * @throws EntityDoesNotExistError
      */
-    public function getDefinition(string $className): RepositoryDefinition;
+    public function getDefinition(string $className): Entity;
 }

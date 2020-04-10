@@ -7,9 +7,10 @@ namespace Goat\Mapper\Definition\Registry;
 use Goat\Mapper\Definition\Column;
 use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\PrimaryKey;
-use Goat\Mapper\Definition\Relation;
-use Goat\Mapper\Definition\RepositoryDefinition;
 use Goat\Mapper\Definition\Table;
+use Goat\Mapper\Definition\Graph\DefaultEntity;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Error\InvalidRepositoryDefinitionError;
 
 /**
@@ -49,15 +50,17 @@ use Goat\Mapper\Error\InvalidRepositoryDefinitionError;
  *     ],
  *     (...,)
  * ]
+ *
+ * @deprecated
  */
-class ArrayDefinitionRegistry implements DefinitionRegistry
+class LegacyArrayDefinitionRegistry implements DefinitionRegistry
 {
     use DefinitionRegistryTrait;
 
     private ?string $defaultSchema = 'public';
     private array $userData;
 
-    /** @var array<string,RepositoryDefinition> */
+    /** @var array<string,Entity> */
     private array $repositories = [];
 
     public function __construct(array $userData, ?string $defaultSchema = 'public')
@@ -69,10 +72,10 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
     /**
      * {@inheritdoc}
      */
-    public function getDefinition(string $className): RepositoryDefinition
+    public function getDefinition(string $className): Entity
     {
         return $this->repositories[$className] ?? (
-            $this->repositories[$className] = $this->createRepositoryDefinition($className)
+            $this->repositories[$className] = $this->createEntity($className)
         );
     }
 
@@ -189,7 +192,7 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         return $ret;
     }
 
-    private function createRepositoryDefinition(string $className): RepositoryDefinition
+    private function createEntity(string $className): Entity
     {
         if (!\class_exists($className) && !\interface_exists($className)) {
             throw new InvalidRepositoryDefinitionError(\sprintf("Class or interface %s does not exists.", $className));
@@ -206,7 +209,7 @@ class ArrayDefinitionRegistry implements DefinitionRegistry
         $table = $this->createTable((string)$input['table'], $input['schema'] ?? null);
         $primaryKey = new PrimaryKey($this->parseColumnArray($input['primary_key'] ?? []));
 
-        return new RepositoryDefinition(
+        return new DefaultEntity(
             $className,
             $this->parseKeyValueArray($input['columns'] ?? []),
             $table,
