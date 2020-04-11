@@ -8,6 +8,7 @@ use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Tests\AbstractRepositoryTest;
 use Goat\Mapper\Tests\Mock\WithManyToOneRelation;
+use Goat\Mapper\Tests\Mock\WithOneToManyRelation;
 
 final class RelationQueryBuilderTest extends AbstractRepositoryTest
 {
@@ -28,37 +29,6 @@ final class RelationQueryBuilderTest extends AbstractRepositoryTest
         $query->build();
     }
 
-    public function testSingleColumnWithKeyInTarget(): void
-    {
-        $manager = $this->createRepositoryManager();
-        $query = $manager
-            ->getQueryBuilderFactory()
-            ->related(
-                WithManyToOneRelation::class,
-                'relatedEntity',
-                [
-                    new Identifier([1]),
-                    new Identifier([2]),
-                    new Identifier([3])
-                ]
-            )
-        ;
-
-        self::assertSameSql(<<<SQL
-SELECT
-    "to_one_in_source"."id"
-        AS "id",
-    "to_one_in_source"."target_id"
-        AS "targetid"
-FROM "public"."to_one_in_source"
-WHERE (
-    "to_one_in_source"."target_id" IN (?, ?, ?)
-)
-SQL
-            , $query->build()
-        );
-    }
-
     public function testSingleColumnWithKeyInSource(): void
     {
         $manager = $this->createRepositoryManager();
@@ -77,15 +47,48 @@ SQL
 
         self::assertSameSql(<<<SQL
 SELECT
-    "to_one_in_target"."id"
-        AS "id"
-FROM "public"."to_one_in_target"
-INNER JOIN "public"."to_one_in_source"
+    "with_one_to_many"."id"
+        AS "id",
+    "with_one_to_many"."value"
+        AS "value"
+FROM "with_one_to_many"
+INNER JOIN "with_many_to_one"
     ON (
-        "to_one_in_target"."id" = "to_one_in_source"."target_id"
+        "with_one_to_many"."id" = "with_many_to_one"."related_entity_id"
     )
 WHERE (
-    "to_one_in_target"."id" IN (?, ?, ?)
+    "with_many_to_one"."related_entity_id" IN (?, ?, ?)
+)
+SQL
+            , $query->build()
+        );
+    }
+
+    public function testSingleColumnWithKeyInTarget(): void
+    {
+        $manager = $this->createRepositoryManager();
+        $query = $manager
+            ->getQueryBuilderFactory()
+            ->related(
+                WithOneToManyRelation::class,
+                'relatedCollection',
+                [
+                    new Identifier([1]),
+                    new Identifier([2]),
+                    new Identifier([3])
+                ]
+            )
+        ;
+
+        self::assertSameSql(<<<SQL
+SELECT
+    "with_many_to_one"."id"
+        AS "id",
+    "with_many_to_one"."related_entity_id"
+        AS "relatedEntityId"
+FROM "with_many_to_one"
+WHERE (
+    "with_many_to_one"."related_entity_id" IN (?, ?, ?)
 )
 SQL
             , $query->build()

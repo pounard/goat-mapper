@@ -38,7 +38,7 @@ CREATE TABLE {$schema}.with_many_to_one (
 SQL
             ,
             'mysql' => <<<SQL
-CREATE TABLE to_many_in_target (
+CREATE TABLE with_many_to_one (
     id VARCHAR(36) NOT NULL,
     PRIMARY KEY (id)
 )

@@ -10,7 +10,6 @@ use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Definition\Graph\RelationAnyToOne;
 use Goat\Mapper\Definition\Graph\RelationManyToMany;
 use Goat\Mapper\Definition\Graph\RelationOneToMany;
-use Goat\Mapper\Definition\Graph\RelationSimple;
 use Goat\Mapper\Error\QueryError;
 use Goat\Query\ExpressionColumn;
 use Goat\Query\ExpressionRelation;
@@ -54,7 +53,7 @@ final class QueryHelper
      */
     private static function addJoinStatementForSimple(
         SelectQuery $query,
-        RelationSimple $relation,
+        Relation $relation,
         string $sourceTableAlias,
         string $targetTableAlias,
         bool $leftJoin = false
@@ -116,7 +115,7 @@ final class QueryHelper
         string $targetTableAlias,
         bool $leftJoin = false
     ): void {
-        if ($relation instanceof RelationSimple) {
+        if ($relation instanceof RelationAnyToOne || $relation instanceof RelationOneToMany) {
             self::addReverseJoinStatementForSimple($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
         } else if ($relation instanceof RelationManyToMany) {
             self::addReverseJoinStatementForManyToMany($query, $relation, $sourceTableAlias, $targetTableAlias, $leftJoin);
@@ -130,12 +129,12 @@ final class QueryHelper
      */
     private static function addReverseJoinStatementForSimple(
         SelectQuery $query,
-        RelationSimple $relation,
+        Relation $relation,
         string $sourceTableAlias,
         string $targetTableAlias,
         bool $leftJoin = false
     ): void {
-        $table = $relation->getSourceTable();
+        $table = $relation->getOwner()->getTable();
         $tableExpression = ExpressionRelation::create($table->getName(), $sourceTableAlias, $table->getSchema());
 
         $targetKeyColumnsMap = $relation->getTargetKey()->getColumnNames();

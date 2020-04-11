@@ -10,10 +10,10 @@ use Goat\Mapper\Definition\Builder\Relation\AnyToOneDefinitionBuilder;
 use Goat\Mapper\Definition\Builder\Relation\ManyToManyDefinitionBuilder;
 use Goat\Mapper\Definition\Builder\Relation\OneToManyDefinitionBuilder;
 use Goat\Mapper\Definition\Builder\Relation\RelationDefinitionBuilder;
-use Goat\Mapper\Definition\Graph\DefaultEntity;
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
-use Goat\Mapper\Definition\Graph\Value;
+use Goat\Mapper\Definition\Graph\Impl\DefaultEntity;
+use Goat\Mapper\Definition\Graph\Impl\DefaultValue;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\ConfigurationError;
 
@@ -172,7 +172,7 @@ final class DefinitionBuilder
     {
         $ret = [];
         foreach ($this->columnMap as $propertyName => $columnName) {
-            $property = new Value($propertyName, $columnName, null);
+            $property = new DefaultValue($propertyName, $columnName, null);
             $property->setOwner($owner);
             $ret[] = $property;
         }
@@ -189,11 +189,9 @@ final class DefinitionBuilder
      */
     public function compile(DefinitionRegistry $definitionRegistry): Entity
     {
-        $entity = new DefaultEntity(
-            $this->className,
-            $this->compileTable(),
-            $this->compilePrimaryKey(),
-        );
+        $entity = new DefaultEntity($this->className);
+        $entity->setTable($this->compileTable());
+        $entity->setPrimaryKey($this->compilePrimaryKey($entity));
 
         $entity->setProperties(
             $this->compileProperties($definitionRegistry, $entity)

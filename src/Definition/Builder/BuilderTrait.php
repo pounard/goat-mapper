@@ -7,7 +7,7 @@ namespace Goat\Mapper\Definition\Builder;
 use Goat\Mapper\Definition\Column;
 use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\PrimaryKey;
-use Goat\Mapper\Definition\Graph\EntityProxy;
+use Goat\Mapper\Definition\Graph\Impl\EntityProxy;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\ConfigurationError;
 

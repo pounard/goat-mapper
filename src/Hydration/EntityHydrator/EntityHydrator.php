@@ -40,6 +40,7 @@ final class EntityHydrator
             \assert($relation instanceof Relation);
 
             $propertyName = $relation->getName();
+            $relationClassName = $relation->getEntity()->getClassName();
 
             if (\array_key_exists($propertyName, $values)) {
                 // It was eagerly loaded.
@@ -56,7 +57,7 @@ final class EntityHydrator
                 $values[$propertyName] = $this
                     ->entityHydratorFactory
                     ->createHydrator(
-                        $relation->getEntity()->getClassName()
+                        $relationClassName
                     )
                     ->hydrate(
                         $value,
@@ -81,7 +82,7 @@ final class EntityHydrator
             // @todo We do create a ghost whereas the result could return null, this is WRONG.
             //   https://github.com/Ocramius/ProxyManager/blob/master/docs/lazy-loading-ghost-object.md
             $values[$propertyName] = $this->proxyFactory->getProxy(
-                $relation->getClassName(),
+                $relationClassName,
                 static function () use ($fetcher, $className, $propertyName, $id) {
                     return $fetcher->single($className, $propertyName, $id);
                 }

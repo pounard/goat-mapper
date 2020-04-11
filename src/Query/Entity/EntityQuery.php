@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Entity;
 
-use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\QueryError;
-use Goat\Mapper\Hydration\Collection\Collection;
-use Goat\Mapper\Hydration\Collection\EmptyCollection;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Query\Graph\Node;
 use Goat\Mapper\Query\Graph\RootNode;
 use Goat\Mapper\Query\Graph\Source;
 use Goat\Mapper\Query\Graph\Traverser;
-use Goat\Mapper\Query\Relation\RelationFetcher;
-use Goat\Mapper\Query\Relation\ResultSet;
+use Goat\Mapper\Query\Relation\DefaultRelationFetcher;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\SelectQuery;
 use Goat\Runner\ResultIterator;
@@ -23,13 +19,14 @@ use Goat\Runner\Runner;
 
 class EntityQuery
 {
-    /** @var DefinitionRegistry */
+    private QueryBuilderFactory $queryBuilderFactory;
     private DefinitionRegistry $definitionRegistry;
     private EntityHydratorFactory $entityHydratorFactory;
-    private ?SelectQuery $query;
-    /** @var RootNode */
-    private RootNode $rootNode;
     private Runner $runner;
+
+    private RootNode $rootNode;
+    private ?SelectQuery $query = null;
+
     /** @var array<string,string> */
     private array $aliases = [];
     /** @var array<string,string> */
@@ -38,16 +35,19 @@ class EntityQuery
     private array $circularReferenceBreaker = [];
 
     public function __construct(
+        QueryBuilderFactory $queryBuilderFactory,
         DefinitionRegistry $definitionRegistry,
         EntityHydratorFactory $entityHydratorFactory,
         Runner $runner,
         string $className,
         ?string $primaryTableAlias = null
     ) {
-        $this->runner = $runner;
-        $this->rootNode = new RootNode($className);
+        $this->queryBuilderFactory = $queryBuilderFactory;
         $this->definitionRegistry = $definitionRegistry;
         $this->entityHydratorFactory = $entityHydratorFactory;
+
+        $this->runner = $runner;
+        $this->rootNode = new RootNode($className);
 
         $definition = $definitionRegistry->getDefinition($className);
         $this->rootNode->setAlias($this->getNextAlias($primaryTableAlias ?? $definition->getTable()->getName()));
@@ -80,7 +80,7 @@ class EntityQuery
     /**
      * Load from a source entity from a relation.
      *
-     * @param iterable<Identifier> $identifiers
+     * @param \Goat\Mapper\Definition\Identifier[] $identifiers
      *   Relation source identifier(s).
      */
     public function from(string $className, string $propertyName, iterable $identifiers): self
@@ -98,7 +98,7 @@ class EntityQuery
      * This can recurse indefinitely over the repository dependency graph
      * so the path can basically be something like:
      *
-     *    'client.address.street.number'
+     *    'client.address.street'
      * 
      * for exemple, each dot-separated word must be a property name or a raw
      * column name of its parent.
@@ -287,21 +287,7 @@ class EntityQuery
 
         $className = $this->rootNode->getClassName();
         // @todo use a pre-fetcher is possible
-        // $fetcher = new DefaultRelationFetcher($this->relationQueryBuilder);
-        $fetcher = new class () implements RelationFetcher {
-            public function single(string $className, string $propertyName, Identifier $id): ?object
-            {
-                throw new \Exception("Not implemented yet.");
-            }
-            public function collection(string $className, string $propertyName, Identifier $id): Collection
-            {
-                return new EmptyCollection();
-            }
-            public function bulk(string $className, string $propertyName, array $identifiers): ResultSet
-            {
-                throw new \Exception("Not implemented yet.");
-            }
-        };
+        $fetcher = new DefaultRelationFetcher($this->queryBuilderFactory);
 
         $entityHydrator = $this->entityHydratorFactory->createHydrator($className);
 

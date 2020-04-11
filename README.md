@@ -43,11 +43,33 @@ complete and mature solutions are such as the Doctrine ORM.
 
 # Standalone setup
 
-@todo I need to write this.
+## Setup the manager
+
+@todo
+
+## Defining an entity
+
+@todo
+
+## Usage
+
+@todo
 
 # Symfony setup
 
 @todo I need to write this.
+
+# Entity graph
+
+Entities and relations are represented using a graph, which can be browsed
+in all directions. Every relation may have its inverse counter-part within
+the graph depending the graph builder that was chosen.
+
+Query builder uses that graph to build SQL queries.
+
+In order to browse this graph, you must start with a specific entity class
+as a starting point. While browsing it, each time you reach a new entity node
+it is being lazy loaded, the graph is never entirely loaded in memory.
 
 # Roadmap
 
@@ -63,33 +85,47 @@ Priority 0, we need it ASAP:
  - [x] rewrite SELECT query using a graph for eager relations, allowing to
    recurse in repository dependency graph for eager loading,
 
- - [ ] implement the N+1 bulk lazy load solution for large result sets with
-   any to many collection,
-
  - [x] make relation fetcher use the graph based query builder,
-
- - [ ] untangle the relation fetcher interface and implementation mess,
 
  - [x] write the finder API, with a dynamic registry, able to introspect for
    classes and call the builder if necessary (using the entity self-defining
    interface),
 
- - [ ] implement functionnal tests with a real SQL backend behind (right now
-   only SQL generation is tested),
-
- - [ ] remove the repository as a first class citizen and make it transcient,
+ - [x] remove the repository as a first class citizen and make it transcient,
    this means that all queries can be created without materializing the
    repositories,
 
- - [ ] specialize the relation definition object to make it more obvious on
-   how to use it.
+ - [x] specialize the relation definition object to make it more obvious on
+   how to use it,
+
+ - [ ] identify relations using a predicitable name, and a direction, so that
+   all relations and their inverse relations can be identified,
+
+ - [ ] implement an intermediate representation of the entity graph for builders
+   to rely upon a single and simple samantic to build entities and relations,
+
+ - [ ] create various compilation passes for the intermediate representation,
+
+ - [ ] create intermediate reprensentation to live graph builder.
 
 Priority 1, we need it before being able to use it:
 
+ - [x] implement to one conditions using property path e.g.
+   'entity.property.property' = foo,
+
  - [ ] handle mapping tables,
+
+ - [ ] implement the N+1 bulk lazy load solution for large result sets with
+   any to many collection,
+
+ - [ ] untangle the relation fetcher interface and implementation mess,
+
+ - [ ] implement functionnal tests with a real SQL backend behind (right now
+   only SQL generation is tested),
 
  - [ ] write a code generator as a cache decorator for the finder API that would
    generate very fast and efficient PHP code to create repository definitions,
+   based upon the intermediate reprensentation,
 
  - [ ] make that PHP cache not so stupid and lazy load repository definitions
    on demand,
@@ -112,9 +148,6 @@ Priority 1, we need it before being able to use it:
 
 Priority 2, industrialisation:
 
- - [x] implement to one conditions using property path e.g.
-   'entity.property.property' = foo,
-
  - [ ] implement SQL schema introspector in goat-query,
 
  - [ ] implement SQL builder introspector in goat-query,
@@ -134,7 +167,7 @@ Priority 2, industrialisation:
 
  - [ ] implement SQL schema parsing auto configuration (from SQL to PHP class),
 
- - [x] implement array-based configuration,
+ - [ ] implement array-based configuration,
 
  - [ ] implement yaml reader,
 

@@ -84,6 +84,7 @@ class QueryBuilderFactory
     public function query(string $className, ?string $primaryTableAlias = null): EntityQuery
     {
         return new EntityQuery(
+            $this,
             $this->definitionRegistry,
             $this->entityHydratorFactory,
             $this->runner,
@@ -106,7 +107,7 @@ class QueryBuilderFactory
         ;
 
         return $this
-            ->query($relation->getClassName())
+            ->query($relation->getEntity()->getClassName())
             ->from($className, $propertyName, $identifiers)
         ;
     }

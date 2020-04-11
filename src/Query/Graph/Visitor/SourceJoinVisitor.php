@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Graph\Visitor;
 
-use Goat\Mapper\Definition\Graph\Relation;
+use Goat\Mapper\Definition\Graph\RelationAnyToOne;
+use Goat\Mapper\Definition\Graph\RelationManyToMany;
+use Goat\Mapper\Definition\Graph\RelationOneToMany;
 use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Entity\QueryHelper;
 use Goat\Mapper\Query\Graph\RootNode;
@@ -23,34 +25,27 @@ class SourceJoinVisitor implements RootVisitor
                 ->getRelation($source->getPropertyName())
             ;
 
-            switch ($relation->getKeyIn()) {
-
-                case Relation::KEY_IN_SOURCE:
-                    $this->handleKeyInSourceTableRelation(
-                        $context,
-                        $node->getAlias(),
-                        $relation,
-                        $source->getIdentifiers(),
-                    );
-                    break;
-
-                case Relation::KEY_IN_TARGET:
-                    $this->handleKeyInTargetTableRelation(
-                        $context,
-                        $node->getAlias(),
-                        $relation,
-                        $source->getIdentifiers(),
-                    );
-                    break;
-
-                case Relation::KEY_IN_MAPPING:
-                    $this->handleKeyInMappingTableRelation(
-                        $context,
-                        $node->getAlias(),
-                        $relation,
-                        $source->getIdentifiers(),
-                    );
-                    break;
+            if ($relation instanceof RelationAnyToOne) {
+                $this->handleKeyInSourceTableRelation(
+                    $context,
+                    $node->getAlias(),
+                    $relation,
+                    $source->getIdentifiers(),
+                );
+            } else if ($relation instanceof RelationOneToMany) {
+                $this->handleKeyInTargetTableRelation(
+                    $context,
+                    $node->getAlias(),
+                    $relation,
+                    $source->getIdentifiers(),
+                );
+            } else {
+                $this->handleKeyInMappingTableRelation(
+                    $context,
+                    $node->getAlias(),
+                    $relation,
+                    $source->getIdentifiers(),
+                );
             }
         }
     }
@@ -69,7 +64,7 @@ class SourceJoinVisitor implements RootVisitor
     private function handleKeyInTargetTableRelation(
         EntityQuery $context,
         string $targetTableAlias,
-        Relation $relation,
+        RelationOneToMany $relation,
         iterable $identifiers
     ): void {
         $context->getQuery()->condition(
@@ -96,17 +91,17 @@ class SourceJoinVisitor implements RootVisitor
     private function handleKeyInSourceTableRelation(
         EntityQuery $context,
         string $targetTableAlias,
-        Relation $relation,
+        RelationAnyToOne $relation,
         iterable $identifiers
     ): void {
         $query = $context->getQuery();
 
-        $sourceTablealias = $context->getNextAlias($relation->getSourceTable()->getName());
+        $sourceTableAlias = $context->getNextAlias($relation->getOwner()->getTable()->getName());
 
         QueryHelper::addReverseJoinStatement(
             $query,
             $relation,
-            $sourceTablealias,
+            $sourceTableAlias,
             $targetTableAlias,
             false
         );
@@ -114,8 +109,8 @@ class SourceJoinVisitor implements RootVisitor
         // Create conditions for filtering on the source table.
         $query->condition(
             QueryHelper::createKeyCondition(
-                $targetTableAlias,
-                $relation->getTargetKey(),
+                $sourceTableAlias,
+                $relation->getSourceKey(),
                 $identifiers
             ),
         );
@@ -136,7 +131,7 @@ class SourceJoinVisitor implements RootVisitor
     private function handleKeyInMappingTableRelation(
         EntityQuery $context,
         string $targetTableAlias,
-        Relation $relation,
+        RelationManyToMany $relation,
         iterable $identifiers
     ): void {
         throw new \Exception("Not implemented yet.");

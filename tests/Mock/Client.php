@@ -14,7 +14,7 @@ class Client implements StaticEntityDefinition
     private string $firstname;
     private string $lastname;
     private ?iterable $addresses;
-    private UuidInterface $advisorId;
+    private ?UuidInterface $advisorId = null;
     private ?Advisor $personalAdvisor;
 
     public function getId(): UuidInterface
@@ -58,10 +58,10 @@ class Client implements StaticEntityDefinition
         ]);
 
         $relation = $builder->addAnyToOneRelation('personalAdvisor', Advisor::class);
-        $relation->setSourceKey(['advisorId' => 'uuid']);
+        $relation->setSourceKey(['advisor_id' => 'uuid']);
 
         $relation = $builder->addOneToManyRelation('addresses', Address::class);
-        $relation->setTargetKey(['clientId' => 'uuid']);
+        $relation->setTargetKey(['client_id' => 'uuid']);
     }
 
     public static function toTableSchema(string $schema): array

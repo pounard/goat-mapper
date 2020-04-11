@@ -6,55 +6,19 @@ namespace Goat\Mapper\Definition\Builder\Relation;
 
 use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\Table;
-use Goat\Mapper\Definition\Builder\BuilderTrait;
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
-use Goat\Mapper\Definition\Graph\RelationManyToMany;
+use Goat\Mapper\Definition\Graph\Impl\DefaultRelationManyToMany;
 
-final class ManyToManyDefinitionBuilder implements RelationDefinitionBuilder
+final class ManyToManyDefinitionBuilder extends AbstractRelationDefinitionBuilder
 {
-    use BuilderTrait;
+    private ?Table $mappingTable;
+    private ?Key $mappingSourceKey;
+    private ?Key $mappingTargetKey;
 
-    private string $sourcePropertyName;
-    private string $targetClassName;
-    private int $mode;
-    private ?Table $targetTable = null;
-    /** @var callable */
-    private $sourceTable;
-    /** @var callable */
-    private $sourcePrimaryKey;
-    /** @var null|array<string,string> */
-    private ?array $sourceKey = null;
-    /** @var null|array<string,string> */
-    private array $targetKey = [];
-    /** @var array<string,string> */
-    private array $columnMap = [];
-
-    public function __construct(
-        string $sourcePropertyName,
-        string $targetClassName,
-        callable $sourceTable,
-        callable $sourcePrimaryKey
-    ) {
-        $this->ensureClassExists($targetClassName);
-
-        $this->targetClassName = $targetClassName;
-        $this->sourcePrimaryKey = $sourcePrimaryKey;
-        $this->sourcePropertyName = $sourcePropertyName;
-        $this->sourceTable = $sourceTable;
-    }
-
-    /**
-     * Set SQL target table name.
-     *
-     * @param string $tableName
-     *   SQL table name.
-     * @param string $schema
-     *   SQL schema name the table is within if different from default.
-     */
-    public function setTargetTableName(string $tableName, ?string $schema = null): void
+    public function __construct(string $sourcePropertyName, string $targetClassName)
     {
-        $this->targetTable = new Table($tableName, $schema);
+        parent::__construct($sourcePropertyName, $targetClassName, Relation::MODE_MANY_TO_MANY);
     }
 
     /**
@@ -65,11 +29,9 @@ final class ManyToManyDefinitionBuilder implements RelationDefinitionBuilder
      *   must have been validated, whereas types will not: types must be types
      *   that goat-query understand and will be propagated as-is to there.
      */
-    public function setTargetKey(array $propertyTypeMap): void
+    public function setTargetKeyIfNotPrimaryKey(array $propertyTypeMap): void
     {
-        $this->ensureKeyIsValid($propertyTypeMap);
-
-        $this->targetKey = $propertyTypeMap;
+        $this->doSetSourceKey($propertyTypeMap);
     }
 
     /**
@@ -80,42 +42,27 @@ final class ManyToManyDefinitionBuilder implements RelationDefinitionBuilder
      *   must have been validated, whereas types will not: types must be types
      *   that goat-query understand and will be propagated as-is to there.
      */
-    public function setSourceKey(array $propertyTypeMap): void
+    public function setSourceKeyIfNotPrimaryKey(array $propertyTypeMap): void
     {
-        $this->ensureKeyIsValid($propertyTypeMap);
-
-        $this->sourceKey = $propertyTypeMap;
-    }
-
-    private function compileTargetKey(): Key
-    {
-        if (null === $this->targetKey) {
-            return null;
-        }
-
-        return $this->doCompileKey($this->targetKey);
-    }
-
-    private function compileSourceKey(): Key
-    {
-        if (null === $this->sourceKey) {
-            return null;
-        }
-
-        return $this->doCompileKey($this->sourceKey);
+        $this->doSetSourceKey($propertyTypeMap);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function compile(Entity $owner): Relation
+    protected function doCompile(Entity $entity): Relation
     {
-        return new RelationManyToMany(
-            $owner,
-            $this->sourcePropertyName,
-            null /* $mapping */,
-            $this->compileSourceKey(),
-            $this->compileTargetKey()
-        );
+        throw new \Exception("Not implemented yet.");
+
+        $relation = new DefaultRelationManyToMany($entity, $this->sourcePropertyName);
+
+        if ($key = $this->compileSourceKey()) {
+            $relation->setSourceKey($key);
+        }
+        if ($key = $this->compileTargetKey()) {
+            $relation->setTargetKey($key);
+        }
+
+        return $relation;
     }
 }

@@ -30,7 +30,7 @@ SELECT
         AS "id",
     "without_relation"."value"
         AS "value"
-FROM "public"."without_relation"
+FROM "without_relation"
 WHERE
     "without_relation"."id" = ?
 SQL,
@@ -54,7 +54,7 @@ SELECT
         AS "id",
     "without_relation"."value"
         AS "value"
-FROM "public"."without_relation"
+FROM "without_relation"
 WHERE
     "without_relation"."value" = ?
 SQL,
@@ -78,7 +78,7 @@ SELECT
         AS "id",
     "without_relation"."value"
         AS "value"
-FROM "public"."without_relation"
+FROM "without_relation"
 WHERE
     "some_other" = ?
 SQL,
@@ -108,7 +108,7 @@ SELECT
         AS "id",
     "without_relation"."value"
         AS "value"
-FROM "public"."without_relation"
+FROM "without_relation"
 WHERE
     bouh is true
 SQL,
@@ -131,7 +131,7 @@ SELECT
         AS "id",
     "without_relation"."value"
         AS "value"
-FROM "public"."without_relation"
+FROM "without_relation"
 SQL,
         $query);
     }

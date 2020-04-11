@@ -5,45 +5,27 @@ declare(strict_types=1);
 namespace Goat\Mapper\Definition\Graph;
 
 use Goat\Mapper\Definition\Key;
+use Goat\Mapper\Definition\Table;
 
 /**
  * Many to many relations necessitate an extra mapping table.
  *
  * We don't consider that one to many or many to one can be 
  */
-class RelationManyToMany extends Relation
+interface RelationManyToMany extends Relation
 {
-    private Mapping $mapping;
-    private ?Key $sourceKey;
-    private ?Key $targetKey;
-
-    public function __construct(Entity $entity, string $name, Mapping $mapping, ?Key $sourceKey, ?Key $targetKey)
-    {
-        parent::__construct($entity, $name, Relation::MODE_MANY_TO_MANY);
-
-        $this->mapping = $mapping;
-        $this->sourceKey = $sourceKey;
-        $this->targetKey = $targetKey;
-    }
-
-    public function getMapping(): Mapping
-    {
-        return $this->mapping;
-    }
+    /**
+     * Get mapping table.
+     */
+    public function getMappingTable(): Table;
 
     /**
-     * Get key in target if different from primary key.
+     * Get target relation key in mapping table.
      */
-    public function getTargetKey(): Key
-    {
-        return $this->targetKey ?? $this->getEntity()->getPrimaryKey();
-    }
+    public function getMappingTargetKey(): Key;
 
     /**
-     * Get key in source if different from primary key.
+     * Get source relation key in mapping table.
      */
-    public function getSourceKey(): Key
-    {
-        return $this->sourceKey ?? $this->getOwner()->getPrimaryKey();
-    }
+    public function getMappingSourceKey(): Key;
 }

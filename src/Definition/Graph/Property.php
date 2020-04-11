@@ -7,26 +7,20 @@ namespace Goat\Mapper\Definition\Graph;
 /**
  * Represents a single entity property.
  */
-abstract class Property implements Node
+interface Property extends Node
 {
-    use WithOwner;
+    /**
+     * Get property name.
+     */
+    public function getName(): string;
 
-    private string $name;
-    private bool $allowsNull = false;
+    /**
+     * Does this property allows null values.
+     */
+    public function allowsNull(): bool;
 
-    public function __construct(string $name, bool $allowsNull = false)
-    {
-        $this->name = $name;
-        $this->allowsNull = $allowsNull;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function allowsNull(): bool
-    {
-        return $this->allowsNull;
-    }
+    /**
+     * Get owner entity.
+     */
+    public function getOwner(): Entity;
 }

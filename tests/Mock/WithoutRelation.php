@@ -19,7 +19,7 @@ class WithoutRelation implements StaticEntityDefinition
 
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('without_relation', 'public');
+        $builder->setTableName('without_relation');
         $builder->addProperty('id');
         $builder->addProperty('value');
         $builder->setPrimaryKey([

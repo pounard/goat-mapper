@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Tests\Unit\Definition\Graph;
+namespace Goat\Mapper\Tests\Unit\Definition\Graph\Impl;
 
 use Goat\Mapper\Definition\PrimaryKey;
 use Goat\Mapper\Definition\Table;
-use Goat\Mapper\Definition\Graph\DefaultEntity;
-use Goat\Mapper\Definition\Graph\EntityProxy;
+use Goat\Mapper\Definition\Graph\Impl\DefaultEntity;
+use Goat\Mapper\Definition\Graph\Impl\EntityProxy;
 use Goat\Mapper\Error\ConfigurationError;
 use PHPUnit\Framework\TestCase;
 
@@ -38,7 +38,10 @@ final class EntityProxyTest extends TestCase
     public function testInitializerReturningAnotherClassNameRaiseError(): void
     {
         $proxy = new EntityProxy(\DateTime::class, static function () {
-            return new DefaultEntity(\DateTimeInterface::class, new Table('foo'), new PrimaryKey([]));
+            $ret = new DefaultEntity(\DateTimeInterface::class);
+            $ret->setTable(new Table('foo'));
+
+            return $ret;
         });
 
         self::expectExceptionMessageRegExp('/is .* instead of/');
@@ -69,7 +72,11 @@ final class EntityProxyTest extends TestCase
         $primaryKey = new PrimaryKey([]);
 
         $proxy = new EntityProxy(\DateTime::class, static function () use ($table, $primaryKey) {
-            return new DefaultEntity(\DateTime::class, $table, $primaryKey);
+            $ret = new DefaultEntity(\DateTime::class);
+            $ret->setTable($table);
+            $ret->setPrimaryKey($primaryKey);
+
+            return $ret;
         });
 
         self::assertSame($table, $proxy->getTable());

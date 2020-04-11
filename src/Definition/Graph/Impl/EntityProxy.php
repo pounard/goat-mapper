@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Definition\Graph;
+namespace Goat\Mapper\Definition\Graph\Impl;
 
 use Goat\Mapper\Definition\PrimaryKey;
 use Goat\Mapper\Definition\Table;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Error\ConfigurationError;
 
 /**
@@ -18,7 +20,7 @@ use Goat\Mapper\Error\ConfigurationError;
  * Repository is to be implemented only in case the using application needs
  * to create typed interfaces, and decouple this component from its business.
  */
-class EntityProxy implements Entity
+final class EntityProxy implements Entity
 {
     private string $className;
     private ?Entity $decorated = null;
@@ -39,6 +41,9 @@ class EntityProxy implements Entity
         return $this->className;
     }
 
+    /**
+     * Initialize decorated entity.
+     */
     private function doInitializeDecoratedEntity(): Entity
     {
         if (!$this->initializer) {
@@ -72,11 +77,25 @@ class EntityProxy implements Entity
         }
     }
 
-    private function getDecoratedEntity(): Entity
+    /**
+     * Get decorated entity.
+     *
+     * @internal
+     *   Please do not use this outside of tests or this class.
+     */
+    public function getDecoratedEntity(): Entity
     {
         return $this->decorated ?? (
             $this->decorated = $this->doInitializeDecoratedEntity()
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getInternalId(): string
+    {
+        return $this->getDecoratedEntity()->getInternalId();
     }
 
     /**

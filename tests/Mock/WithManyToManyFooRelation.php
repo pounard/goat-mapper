@@ -19,27 +19,27 @@ class WithManyToManyFooRelation implements StaticEntityDefinition
 
     public static function defineEntity(DefinitionBuilder $builder): void
     {
-        $builder->setTableName('with_many_to_many_a');
+        $builder->setTableName('with_many_to_many_foo');
         $builder->addProperty('id');
         $builder->setPrimaryKey([
             'id' => 'uuid',
         ]);
         $relation = $builder->addManyToManyRelation('relation', WithManyToManyBarRelation::class);
-        $relation->setTargetTableName('a_to_b');
+        $relation->setTargetTableName('bar_to_foo');
     }
 
     public static function toTableSchema(string $schema): array
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE {$schema}.to_many_in_mapping (
+CREATE TABLE {$schema}.with_many_to_many_foo (
     id UUID NOT NULL,
     PRIMARY KEY (id)
 )
 SQL
             ,
             'mysql' => <<<SQL
-CREATE TABLE to_many_in_mapping (
+CREATE TABLE with_many_to_many_foo (
     id VARCHAR(36) NOT NULL,
     PRIMARY KEY (id)
 )

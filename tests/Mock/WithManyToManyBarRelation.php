@@ -7,7 +7,7 @@ namespace Goat\Mapper\Tests\Mock;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-/* final */ class WithManyToManyBarRelation
+class WithManyToManyBarRelation
 {
     /** @var UuidInterface */
     private $id;
@@ -17,8 +17,10 @@ use Ramsey\Uuid\UuidInterface;
 
     public static function toDefinitionArray(): array
     {
+        throw new \Exception("Implement me.");
+
         return [
-            'table' => 'to_many_in_mapping',
+            'table' => 'with_many_to_many_bar',
             'primary_key' => [
                 'id' => 'uuid',
             ],
@@ -44,14 +46,14 @@ use Ramsey\Uuid\UuidInterface;
     {
         return [
             'pgsql' => <<<SQL
-CREATE TABLE {$schema}.to_many_in_mapping (
+CREATE TABLE {$schema}.with_many_to_many_bar (
     id UUID NOT NULL,
     PRIMARY KEY (id)
 )
 SQL
             ,
             'mysql' => <<<SQL
-CREATE TABLE to_many_in_mapping (
+CREATE TABLE with_many_to_many_bar (
     id VARCHAR(36) NOT NULL,
     PRIMARY KEY (id)
 )

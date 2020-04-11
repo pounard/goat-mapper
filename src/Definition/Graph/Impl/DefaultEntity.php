@@ -2,37 +2,34 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Definition\Graph;
+namespace Goat\Mapper\Definition\Graph\Impl;
 
 use Goat\Mapper\Definition\PrimaryKey;
 use Goat\Mapper\Definition\Table;
+use Goat\Mapper\Definition\Graph\Entity;
+use Goat\Mapper\Definition\Graph\Property;
+use Goat\Mapper\Definition\Graph\Relation;
+use Goat\Mapper\Definition\Graph\Value;
 use Goat\Mapper\Error\ConfigurationError;
 use Goat\Mapper\Error\PropertyError;
 
-class DefaultEntity implements Entity
+final class DefaultEntity extends AbstractNode implements Entity
 {
     private string $className;
-    private Table $table;
-    private ?PrimaryKey $primaryKey;
+    private ?Table $table = null;
+    private ?PrimaryKey $primaryKey = null;
     /** @var array<string,Property> */
-    private ?array $properties = null;
+    private array $properties = [];
     /** @var array<string,Relation> */
-    private ?array $relations = null;
+    private array $relations = [];
     /** @var array<string,Relation> */
     private array $relationClassNameMap = [];
     /** @var array<string,string[]> */
-    private ?array $columnMapCache;
+    private array $columnMapCache = [];
 
-    /** @param null|Property[] $properties */
-    public function __construct(string $className, Table $table, ?PrimaryKey $primaryKey, ?array $properties = null)
+    public function __construct(string $className)
     {
         $this->className = $className;
-        $this->table = $table;
-        $this->primaryKey = $primaryKey;
-
-        if (null !== $properties) {
-            $this->setProperties($properties);
-        }
     }
 
     /**
@@ -42,23 +39,8 @@ class DefaultEntity implements Entity
      */
     public function setProperties(array $properties = []): void
     {
-        if (null !== $this->properties) {
-            throw new ConfigurationError("Properties are already set.");
-        }
-
-        $this->properties = [];
-        $this->relations = [];
-
         foreach ($properties as $property) {
-            \assert($property instanceof Property);
-
-            $propertyName = $property->getName();
-            $this->properties[$propertyName] = $property;
-
-            if ($property instanceof Relation) {
-                $this->relations[$propertyName] = $property;
-                $this->relationClassNameMap[$property->getEntity()->getClassName()][] = $propertyName;
-            }
+            $this->addProperty($property);
         }
     }
 
@@ -71,11 +53,27 @@ class DefaultEntity implements Entity
     }
 
     /**
+     * Set table.
+     */
+    public function setTable(Table $table): void
+    {
+        $this->table = $table;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getTable(): Table
     {
-        return $this->table;
+        return $this->table ?? $this->tableIsNotSet();
+    }
+
+    /**
+     * Set primary key.
+     */
+    public function setPrimaryKey(PrimaryKey $primaryKey): void
+    {
+        $this->primaryKey = $primaryKey;
     }
 
     /**
@@ -84,6 +82,27 @@ class DefaultEntity implements Entity
     public function getPrimaryKey(): ?PrimaryKey
     {
         return $this->primaryKey;
+    }
+
+    /**
+     * Add a single property.
+     */
+    public function addProperty(Property $property): void
+    {
+        $propertyName = $property->getName();
+
+        if (isset($this->properties[$propertyName])) {
+            throw new ConfigurationError(\sprintf("Property %s was already set.", $propertyName));
+        }
+
+        $this->properties[$propertyName] = $property;
+
+        if ($property instanceof Relation) {
+            $this->relations[$propertyName] = $property;
+            $this->relationClassNameMap[$property->getEntity()->getClassName()][] = $propertyName;
+        } else if ($property instanceof Value) {
+            $this->columnMapCache[$property->getName()] = $property->getColumnName();
+        }
     }
 
     /**
@@ -99,7 +118,7 @@ class DefaultEntity implements Entity
      */
     public function getRelations(): iterable
     {
-        return $this->relations ?? $this->propertiesAreNotInitialized();
+        return $this->relations;
     }
 
     /**
@@ -107,7 +126,7 @@ class DefaultEntity implements Entity
      */
     public function getProperties(): iterable
     {
-        return $this->properties ?? $this->propertiesAreNotInitialized();
+        return $this->properties;
     }
 
     /**
@@ -115,10 +134,6 @@ class DefaultEntity implements Entity
      */
     public function getColumnName(string $propertyName): ?string
     {
-        if (null === $this->columnMapCache) {
-            $this->columnMapCache = $this->createColumnMap();
-        }
-
         return $this->columnMapCache[$propertyName] ?? null;
     }
 
@@ -127,7 +142,7 @@ class DefaultEntity implements Entity
      */
     public function getColumnMap(): array
     {
-        return $this->columnMapCache ?? ($this->columnMapCache = $this->createColumnMap());
+        return $this->columnMapCache;
     }
 
     /**
@@ -136,18 +151,6 @@ class DefaultEntity implements Entity
     public function getChildren(): iterable
     {
         return $this->properties;
-    }
-
-    private function createColumnMap(): array
-    {
-        $ret = [];
-        foreach ($this->properties as $property) {
-            if ($property instanceof Value) {
-                $ret[$property->getName()] = $property->getColumnName();
-            }
-        }
-
-        return $ret;
     }
 
     private function findRelationWithClass(string $className): Relation
@@ -161,20 +164,9 @@ class DefaultEntity implements Entity
         return $this->relationDoesNotExist($className);
     }
 
-    private function propertiesAreNotInitialized(): Relation
+    private function tableIsNotSet(): void
     {
-        throw new PropertyError(\sprintf(
-            "Repository for %s properties are not initialized.",
-            $this->className
-        ));
-    }
-
-    private function propertyDoesNotExist(string $propertyName): Relation
-    {
-        throw new PropertyError(\sprintf(
-            "Repository for %s has no property '%s'.",
-            $this->className, $propertyName
-        ));
+        throw new ConfigurationError("Table is missing from definition.");
     }
 
     private function relationDoesNotExist(string $className): Relation

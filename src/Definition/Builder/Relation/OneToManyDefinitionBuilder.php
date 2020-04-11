@@ -4,33 +4,18 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Definition\Builder\Relation;
 
-use Goat\Mapper\Definition\Key;
-use Goat\Mapper\Definition\Builder\BuilderTrait;
+use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
-use Goat\Mapper\Definition\Graph\RelationOneToMany;
-use Goat\Mapper\Definition\Registry\DefinitionRegistry;
-use Goat\Mapper\Error\ConfigurationError;
+use Goat\Mapper\Definition\Graph\Impl\DefaultRelationOneToMany;
 
 /**
  * Build definition for an entity.
  */
-final class OneToManyDefinitionBuilder implements RelationDefinitionBuilder
+final class OneToManyDefinitionBuilder extends AbstractRelationDefinitionBuilder
 {
-    use BuilderTrait;
-
-    private string $sourcePropertyName;
-    private string $targetClassName;
-    private ?Key $targetKey = null;
-    private ?Key $sourceKey = null;
-    /** @var callable */
-    private $defaultSourceKey;
-
     public function __construct(string $sourcePropertyName, string $targetClassName)
     {
-        $this->ensureClassExists($targetClassName);
-
-        $this->sourcePropertyName = $sourcePropertyName;
-        $this->targetClassName = $targetClassName;
+        parent::__construct($sourcePropertyName, $targetClassName, Relation::MODE_ONE_TO_MANY);
     }
 
     /**
@@ -43,9 +28,7 @@ final class OneToManyDefinitionBuilder implements RelationDefinitionBuilder
      */
     public function setTargetKey(array $propertyTypeMap): void
     {
-        $this->ensureKeyIsValid($propertyTypeMap);
-
-        $this->targetKey = $this->doCompileKey($propertyTypeMap);
+        $this->doSetTargetKey($propertyTypeMap);
     }
 
     /**
@@ -58,44 +41,23 @@ final class OneToManyDefinitionBuilder implements RelationDefinitionBuilder
      */
     public function setSourceKeyIfNotPrimaryKey(array $propertyTypeMap): void
     {
-        $this->ensureKeyIsValid($propertyTypeMap);
-
-        $this->sourceKey = $this->doCompileKey($propertyTypeMap);
-    }
-
-
-    private function compileTargetKey(): Key
-    {
-        if (null === $this->targetKey) {
-            throw new ConfigurationError(\sprintf(
-                "Relation for property '%s' target key (source identifier in target table) must be specified using %s::setTargetKey().",
-                $this->sourcePropertyName,
-                __CLASS__
-            ));
-        }
-
-        return $this->targetKey;
-    }
-
-    private function compileSourceKey(): ?Key
-    {
-        if ($this->sourceKey) {
-            $this->ensureKeysCompatibility($this->sourceKey, $this->targetKey);
-        }
-
-        return $this->sourceKey;
+        $this->doSetSourceKey($propertyTypeMap);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function compile(DefinitionRegistry $definitionRegistry): Relation
+    protected function doCompile(Entity $entity): Relation
     {
-        return new RelationOneToMany(
-            $this->createProxy($this->targetClassName, $definitionRegistry),
-            $this->sourcePropertyName,
-            $this->compileTargetKey(),
-            $this->compileSourceKey()
-        );
+        $relation = new DefaultRelationOneToMany($entity, $this->sourcePropertyName);
+
+        if ($key = $this->compileSourceKey()) {
+            $relation->setSourceKey($key);
+        }
+        if ($key = $this->compileTargetKey(true)) {
+            $relation->setTargetKey($key);
+        }
+
+        return $relation;
     }
 }
