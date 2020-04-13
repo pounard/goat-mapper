@@ -80,13 +80,11 @@ final class Identifier implements Debuggable
             return false;
         }
 
-        for ($i = 0; $i < $this->length; ++$i) {
-            if ($this->values[$i] !== $other->values[$i]) {
-                return false;
-            }
-        }
-
-        return true;
+        // Previous algorithm was testing each key one by one, sadly some
+        // values could be something else than scalars, and the === check
+        // would yield false negatives since objects references can differ
+        // yet yield the same values at the same time.
+        return $this->getHash() === $other->getHash();
     }
 
     /**

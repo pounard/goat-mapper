@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Entity;
 
+use Goat\Mapper\Definition\GrowableIdentifierList;
+use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
@@ -12,6 +14,7 @@ use Goat\Mapper\Query\Graph\RootNode;
 use Goat\Mapper\Query\Graph\Source;
 use Goat\Mapper\Query\Graph\Traverser;
 use Goat\Mapper\Query\Relation\DefaultRelationFetcher;
+use Goat\Mapper\Query\Relation\PreFetchRelationFetcher;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\SelectQuery;
 use Goat\Runner\ResultIterator;
@@ -24,6 +27,7 @@ class EntityQuery
     private EntityHydratorFactory $entityHydratorFactory;
     private Runner $runner;
 
+    private bool $locked = false;
     private RootNode $rootNode;
     private ?SelectQuery $query = null;
 
@@ -85,6 +89,8 @@ class EntityQuery
      */
     public function from(string $className, string $propertyName, iterable $identifiers): self
     {
+        $this->ensureQueryIsNotLocked();
+
         $this->rootNode->withSource(
             new Source($className, $propertyName, $identifiers)
         );
@@ -108,6 +114,8 @@ class EntityQuery
      */
     public function eager(string $propertyPath): self
     {
+        $this->ensureQueryIsNotLocked();
+
         $this->doAddRecursion(
             $this->rootNode,
             \explode('.', $propertyPath)
@@ -133,6 +141,8 @@ class EntityQuery
      */
     public function matches(string $propertyPath, $expression): self
     {
+        $this->ensureQueryIsNotLocked();
+
         if (false === \strpos($propertyPath, '.')) {
             $this->rootNode->withCondition($propertyPath, $expression);
             $this->rootNode->toggleMatch(true);
@@ -154,6 +164,8 @@ class EntityQuery
      */
     public function getNextAlias(string $alias): string
     {
+        $this->ensureQueryIsNotLocked();
+
         if (isset($this->aliases[$alias])) {
             return $alias.'_'.(++$this->aliases[$alias]);
         }
@@ -165,6 +177,45 @@ class EntityQuery
     private function doAddRecursion(Node $node, array $path): void
     {
         $propertyName = \array_shift($path);
+
+        $entity = $this->doFindTargetEntity($node, $propertyName);
+        if (!$entity) {
+            return;
+        }
+
+        $child = $node->upsert($propertyName, $entity->getClassName());
+        $child->toggleLoad(true);
+        // @todo This will be called more than once.
+        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
+
+        if ($path) {
+            $this->doAddRecursion($child, $path);
+        }
+    }
+
+    private function doMatchRecursion(Node $node, array $path, $expression): void
+    {
+        $propertyName = \array_shift($path);
+
+        $entity = $this->doFindTargetEntity($node, $propertyName);
+        if (!$entity) {
+            return;
+        }
+
+        $child = $node->upsert($propertyName, $entity->getClassName());
+        $child->toggleMatch(true);
+        // @todo This will be called more than once.
+        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
+
+        if ($path) {
+            $this->doMatchRecursion($child, $path, $expression);
+        } else {
+            $child->withCondition($propertyName, $expression);
+        }
+    }
+
+    private function doFindTargetEntity(Node $node, string $propertyName): ?Entity
+    {
         $parentClassName = $node->getClassName();
 
         $relation = $this
@@ -181,7 +232,7 @@ class EntityQuery
         // to many relations, problem is much more complex for those.
         if ($relation->isMultiple()) {
             // @todo when instrumentation will be implemented, log here.
-            return;
+            return null;
         }
 
         if ($this->isCircularDependency($parentClassName, $propertyName)) {
@@ -192,52 +243,82 @@ class EntityQuery
             ));
         }
 
-        $entity = $relation->getEntity();
-
-        $child = $node->upsert($propertyName, $entity->getClassName());
-        $child->toggleLoad(true);
-        // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
-
-        if ($path) {
-            $this->doAddRecursion($child, $path);
-        }
+        return $relation->getEntity();
     }
 
-    private function doMatchRecursion(Node $node, array $path, $expression): void
+    /**
+     * Fetch the build select query, you can then call execute() to fetch data.
+     */
+    public function build(): SelectQuery
     {
-        $propertyName = \array_shift($path);
-        $parentClassName = $node->getClassName();
+        $this->locked = true;
 
-        $relation = $this
-            ->definitionRegistry
-            ->getDefinition($parentClassName)
-            ->getRelation($propertyName)
-        ;
+        $traverser = Traverser::createQueryBuilder();
+        $traverser->traverse($this);
 
-        // Relation could be a class name.
-        $propertyName = $relation->getName();
+        $query = $this->getQuery();
+        $className = $this->rootNode->getClassName();
+        $primaryKey = $this->definitionRegistry->getDefinition($className)->getPrimaryKey();
 
-        if ($this->isCircularDependency($parentClassName, $propertyName)) {
-            throw new QueryError(\sprintf(
-                "Circular dependency requested for relation '%s' of class %s",
-                $propertyName,
-                $parentClassName
-            ));
-        }
+        // @todo make this conditionnal.
+        // Create an identifier list, those identifiers will be used for
+        // prefetching N+1 lazy properties. It will be populated during entity
+        // hydration first iteration, then the pre-fetcher will be able to use
+        // this list to proceed to bulk load.
+        $identifiers = new GrowableIdentifierList();
 
-        $entity = $relation->getEntity();
+        // Fetch that is aware of identifier list to pre-fetch.
+        $fetcher = new PreFetchRelationFetcher(
+            new DefaultRelationFetcher(
+                $this->queryBuilderFactory
+            ),
+            $identifiers
+        );
 
-        $child = $node->upsert($propertyName, $entity->getClassName());
-        $child->toggleMatch(true);
-        // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
+        $entityHydrator = $this->entityHydratorFactory->createHydrator($className);
 
-        if ($path) {
-            $this->doMatchRecursion($child, $path, $expression);
-        } else {
-            $child->withCondition($propertyName, $expression);
-        }
+        $query->setOption(
+            'result_decorator',
+            static function (ResultIterator $result) use ($identifiers): ResultIterator {
+                // Force iterator to iterate at least once, otherwise the
+                // pre-fetch iterator list cannot be complete.
+                $result->setRewindable(true);
+                foreach ($result as $_) {
+                    // Do nothing, just iterate.
+                }
+
+                $identifiers->lock();
+
+                // @todo this method is not public.
+                $result->rewind();
+
+                return $result;
+            }
+        );
+
+        $query->setOption(
+            'hydrator',
+            static function (array $values) use ($entityHydrator, $fetcher, $primaryKey, $identifiers) {
+                // Populate pre-fetch identifier list from raw entity values
+                // before they have been hydrated (otherwise we cannot guess
+                // values).
+                // During this workflow, we cannot expect the iterator to have
+                // been fully iterated prior to fetch relations, but we hope.
+                $identifiers->add($primaryKey->createIdentifierFromRow($values));
+
+                return $entityHydrator->hydrate($values, $fetcher);
+            }
+        );
+
+        return $query;
+    }
+
+    /**
+     * Alias of calling self::build()->execute().
+     */
+    public function execute(): ResultIterator
+    {
+        return $this->build()->execute();
     }
 
     /**
@@ -275,37 +356,12 @@ class EntityQuery
     }
 
     /**
-     * Fetch the build select query, you can then call execute() to fetch data.
+     * Raise error if query is locked.
      */
-    public function build(): SelectQuery
+    private function ensureQueryIsNotLocked(): void
     {
-        // @todo make the object immutable once this called.
-        $traverser = Traverser::createQueryBuilder();
-        $traverser->traverse($this);
-
-        $query = $this->getQuery();
-
-        $className = $this->rootNode->getClassName();
-        // @todo use a pre-fetcher is possible
-        $fetcher = new DefaultRelationFetcher($this->queryBuilderFactory);
-
-        $entityHydrator = $this->entityHydratorFactory->createHydrator($className);
-
-        $query->setOption(
-            'hydrator',
-            static function (array $values) use ($entityHydrator, $fetcher) {
-                return $entityHydrator->hydrate($values, $fetcher);
-            }
-        );
-
-        return $query;
-    }
-
-    /**
-     * Alias of calling self::build()->execute().
-     */
-    public function execute(): ResultIterator
-    {
-        return $this->build()->execute();
+        if ($this->locked) {
+            throw new QueryError("Query is locked.");
+        }
     }
 }

@@ -12,8 +12,6 @@ namespace Goat\Mapper\Hydration\Collection;
  * the keys look like.
  *
  * @var Collection<T>
- *
- * @todo Implement a rewindable iterator.
  */
 abstract class AbstractCollection implements Collection, \IteratorAggregate
 {

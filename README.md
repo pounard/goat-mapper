@@ -101,12 +101,7 @@ Priority 0, we need it ASAP:
  - [ ] identify relations using a predicitable name, and a direction, so that
    all relations and their inverse relations can be identified,
 
- - [ ] implement an intermediate representation of the entity graph for builders
-   to rely upon a single and simple samantic to build entities and relations,
-
- - [ ] create various compilation passes for the intermediate representation,
-
- - [ ] create intermediate reprensentation to live graph builder.
+ - [ ] create various compilation passes after builder for fixing data.
 
 Priority 1, we need it before being able to use it:
 
@@ -120,8 +115,12 @@ Priority 1, we need it before being able to use it:
 
  - [ ] untangle the relation fetcher interface and implementation mess,
 
- - [ ] implement functionnal tests with a real SQL backend behind (right now
+ - [ ] find a proper and more direct way to collect entities identifiers,
+
+ - [x] implement functionnal tests with a real SQL backend behind (right now
    only SQL generation is tested),
+
+ - [ ] write much more functionnal tests,
 
  - [ ] write a code generator as a cache decorator for the finder API that would
    generate very fast and efficient PHP code to create repository definitions,
@@ -179,10 +178,10 @@ Priority 2, industrialisation:
 
 Backlog, for later or when I'm bored:
 
- - [ ] proof of concept of implementing definitions as a graph that lazy loads
+ - [x] proof of concept of implementing definitions as a graph that lazy loads
    and a query builder working by traversing this graph,
 
- - [ ] implement the rewindabe re-usable result iterator in goat-query,
+ - [x] implement the rewindabe re-usable result iterator in goat-query,
 
  - [ ] implement xml reader ? why exactly ?
 

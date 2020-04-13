@@ -58,20 +58,40 @@ final class DefaultRelationFetcher implements RelationFetcher
      */
     public function bulk(string $className, string $propertyName, array $identifiers): ResultSet
     {
+        // @todo ugly version that does not bulk load
+        $ret = new DefaultResultSet();
+
+        foreach ($identifiers as $id) {
+            $ret->add(
+                $id,
+                $this->collection(
+                    $className,
+                    $propertyName,
+                    $id
+                )
+            );
+        }
+
+        return $ret;
+
+        /*
         $result = $this
             ->queryBuilderFactory
             ->related($className, $propertyName, $identifiers)
             ->execute()
         ;
 
-        if (!$result->countRows()) {
+        $rowCount = $result->countRows();
+
+        if (!$rowCount) {
             return new EmptyResultSet();
         }
 
-        if (1 === count($identifiers)) {
+        if (1 === $rowCount) {
             return new SingleResultSet($result->fetch());
         }
 
-        throw new \Exception("Not implemented yet");
+        return new DefaultResultSet();
+         */
     }
 }

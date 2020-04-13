@@ -5,55 +5,23 @@ declare(strict_types=1);
 namespace Goat\Mapper\Query\Relation;
 
 use Goat\Mapper\Definition\Identifier;
+use Goat\Mapper\Definition\IdentifierList;
 use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Hydration\Collection\Collection;
+use Goat\Mapper\Hydration\Collection\DefaultCollection;
 
 final class PreFetchRelationFetcher implements RelationFetcher
 {
-    /** @var RelationFetcher */
-    private $decorated;
+    private RelationFetcher $decorated;
+    private IdentifierList $identifierList;
 
-    /** @var iterable<Identifier> */
-    private $identifiers;
+    /** @var array<string,array<string,ResultSet>> */
+    private array $cache = [];
 
-    /**
-     * @var array<string,array<string,ResultSet>>
-     * @todo Consider emptying this after everything has been fetched.
-     */
-    private $cache = [];
-
-    /** @param iterable<Identifier> $identifiers */
-    public function __construct(RelationFetcher $decorated, iterable $identifiers)
+    public function __construct(RelationFetcher $decorated, IdentifierList $identifierList)
     {
         $this->decorated = $decorated;
-        $this->identifiers = $identifiers;
-    }
-
-    private function identifierExists(Identifier $id): bool
-    {
-        foreach ($this->identifiers as $other) {
-            if ($id->equals($other)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function identifierDoesNotExists(Identifier $id): void
-    {
-        throw new QueryError(\sprintf("Identifier %s was not prefetched", $id));
-    }
-
-    private function doLoad(string $className, string $propertyName): ResultSet
-    {
-        return $this->decorated->bulk($className, $propertyName, $this->identifiers);
-    }
-
-    private function getResult(string $className, string $propertyName)
-    {
-        return $this->cache[$className][$propertyName] ?? (
-            $this->cache[$className][$propertyName] = $this->doLoad($className, $propertyName)
-        );
+        $this->identifierList = $identifierList;
     }
 
     /**
@@ -69,11 +37,13 @@ final class PreFetchRelationFetcher implements RelationFetcher
      */
     public function collection(string $className, string $propertyName, Identifier $id): Collection
     {
-        if (!$this->identifierExists($id)) {
+        if (!$this->identifierList->exists($id)) {
             $this->identifierDoesNotExists($id);
         }
 
-        return $this->getResult($className, $propertyName)->get($id);
+        return new DefaultCollection(function () use ($className, $propertyName, $id) {
+            return $this->getResult($className, $propertyName)->get($id);
+        });
     }
 
     /**
@@ -82,11 +52,32 @@ final class PreFetchRelationFetcher implements RelationFetcher
     public function bulk(string $className, string $propertyName, array $identifiers): ResultSet
     {
         foreach ($identifiers as $id) {
-            if (!$this->identifierExists($id)) {
+            if (!$this->identifierList->exists($id)) {
                 $this->identifierDoesNotExists($id);
             }
         }
 
         return $this->getResult($className, $propertyName);
+    }
+
+    private function doGetResult(string $className, string $propertyName): ResultSet
+    {
+        if ($this->identifierList->isEmpty()) {
+            return new EmptyResultSet();
+        }
+
+        return $this->decorated->bulk($className, $propertyName, $this->identifierList->toArray());
+    }
+
+    private function getResult(string $className, string $propertyName)
+    {
+        return $this->cache[$className][$propertyName] ?? (
+            $this->cache[$className][$propertyName] = $this->doGetResult($className, $propertyName)
+        );
+    }
+
+    private function identifierDoesNotExists(Identifier $id): void
+    {
+        throw new QueryError(\sprintf("Identifier %s is not set for pre-fetch", $id->toString()));
     }
 }

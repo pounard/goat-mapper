@@ -33,7 +33,7 @@ final class EntityHydratorFactory
     public function createHydrator(string $className): EntityHydrator
     {
         return $this->cache[$className] ?? (
-            $this->cache[$className] = new EntityHydrator(
+            $this->cache[$className] = new DefaultEntityHydrator(
                 $this->hydratorRegistry->getHydrator($className),
                 $this->definitionRegistry->getDefinition($className),
                 $this,
