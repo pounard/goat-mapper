@@ -51,15 +51,15 @@ final class DefaultRelationManyToMany extends AbstractRelation implements Relati
      */
     public function getMappingSourceKey(): Key
     {
-        return $this->sourceKey ?? $this->getOwner()->getPrimaryKey();
+        return $this->mappingSourceKey ?? $this->getOwner()->getPrimaryKey();
     }
 
     /**
      * Set target key in mapping table.
      */
-    public function setMappingTargetKey(Key $mappingSourceKey): void
+    public function setMappingTargetKey(Key $mappingTargetKey): void
     {
-        $this->mappingSourceKey = $mappingSourceKey;
+        $this->mappingTargetKey = $mappingTargetKey;
     }
 
     /**
@@ -67,7 +67,7 @@ final class DefaultRelationManyToMany extends AbstractRelation implements Relati
      */
     public function getMappingTargetKey(): Key
     {
-        return $this->targetKey ?? $this->getEntity()->getPrimaryKey();
+        return $this->mappingTargetKey ?? $this->getEntity()->getPrimaryKey();
     }
 
     /**

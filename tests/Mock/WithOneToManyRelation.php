@@ -13,9 +13,12 @@ use Ramsey\Uuid\UuidInterface;
 class WithOneToManyRelation implements StaticEntityDefinition
 {
     private UuidInterface $id;
+    private ?int $serial = null;
     private ?string $value = null;
     /** @var WithManyToOneRelation[] */
     private ?Collection $relatedCollection = null;
+    /** @var WithManyToOneRelation[] */
+    private ?Collection $relatedCollectionUsingSerial = null;
 
     public static function defineEntity(DefinitionBuilder $builder): void
     {
@@ -27,6 +30,9 @@ class WithOneToManyRelation implements StaticEntityDefinition
         ]);
         $relation = $builder->addOneToManyRelation('relatedCollection', WithManyToOneRelation::class);
         $relation->setTargetKey(['related_entity_id' => 'uuid']);
+        $relation = $builder->addOneToManyRelation('relatedCollectionUsingSerial', WithManyToOneRelation::class);
+        $relation->setTargetKey(['related_entity_serial' => 'int']);
+        $relation->setSourceKeyIfNotPrimaryKey(['serial' => 'int']);
     }
 
     public static function toTableSchema(string $schema): array
@@ -35,16 +41,20 @@ class WithOneToManyRelation implements StaticEntityDefinition
             'pgsql' => <<<SQL
 CREATE TABLE {$schema}.with_one_to_many (
     id UUID NOT NULL,
+    serial SERIAL NOT NULL,
     value TEXT DEFAULT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE(serial)
 )
 SQL
             ,
             'mysql' => <<<SQL
 CREATE TABLE with_one_to_many (
     id VARCHAR(36) NOT NULL,
+    serial INTEGER NOT NULL AUTO_INCREMENT,
     value TEXT DEFAULT NULL
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE(serial)
 )
 SQL
         ];
@@ -55,8 +65,13 @@ SQL
         return $this->id ?? ($this->id = Uuid::uuid4());
     }
 
-    public function getRelatedEntity(): ?WithoutRelation
+    public function getSerial(): ?int
     {
-        return $this->relatedEntity;
+        return $this->serial;
+    }
+
+    public function getRelatedCollection(): ?iterable
+    {
+        return $this->relatedCollection;
     }
 }

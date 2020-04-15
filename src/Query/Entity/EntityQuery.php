@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Goat\Mapper\Query\Entity;
 
 use Goat\Mapper\Definition\GrowableIdentifierList;
-use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
@@ -160,12 +159,10 @@ class EntityQuery
     }
 
     /**
-     * Compute a non duplicated alias for given table name or alias.
+     * {@inheritdoc}
      */
     public function getNextAlias(string $alias): string
     {
-        $this->ensureQueryIsNotLocked();
-
         if (isset($this->aliases[$alias])) {
             return $alias.'_'.(++$this->aliases[$alias]);
         }
@@ -177,45 +174,6 @@ class EntityQuery
     private function doAddRecursion(Node $node, array $path): void
     {
         $propertyName = \array_shift($path);
-
-        $entity = $this->doFindTargetEntity($node, $propertyName);
-        if (!$entity) {
-            return;
-        }
-
-        $child = $node->upsert($propertyName, $entity->getClassName());
-        $child->toggleLoad(true);
-        // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
-
-        if ($path) {
-            $this->doAddRecursion($child, $path);
-        }
-    }
-
-    private function doMatchRecursion(Node $node, array $path, $expression): void
-    {
-        $propertyName = \array_shift($path);
-
-        $entity = $this->doFindTargetEntity($node, $propertyName);
-        if (!$entity) {
-            return;
-        }
-
-        $child = $node->upsert($propertyName, $entity->getClassName());
-        $child->toggleMatch(true);
-        // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
-
-        if ($path) {
-            $this->doMatchRecursion($child, $path, $expression);
-        } else {
-            $child->withCondition($propertyName, $expression);
-        }
-    }
-
-    private function doFindTargetEntity(Node $node, string $propertyName): ?Entity
-    {
         $parentClassName = $node->getClassName();
 
         $relation = $this
@@ -232,7 +190,7 @@ class EntityQuery
         // to many relations, problem is much more complex for those.
         if ($relation->isMultiple()) {
             // @todo when instrumentation will be implemented, log here.
-            return null;
+            return;
         }
 
         if ($this->isCircularDependency($parentClassName, $propertyName)) {
@@ -243,7 +201,60 @@ class EntityQuery
             ));
         }
 
-        return $relation->getEntity();
+        $entity = $relation->getEntity();
+
+        $child = $node->upsert($propertyName, $entity->getClassName());
+        $child->toggleLoad(true);
+        // @todo This will be called more than once.
+        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
+
+        if ($path) {
+            $this->doAddRecursion($child, $path);
+        }
+    }
+
+    private function doMatchRecursion(Node $node, array $path, $expression): void
+    {
+        $propertyName = \array_shift($path);
+        $parentClassName = $node->getClassName();
+
+        $relation = $this
+            ->definitionRegistry
+            ->getDefinition($parentClassName)
+            ->getRelation($propertyName)
+        ;
+
+        // Relation could be a class name.
+        $propertyName = $relation->getName();
+
+        // Break eager loading for to-many relations, using a prefetcher
+        // will do the job otherwise. The N+1 problem stops where N = 1 with
+        // to many relations, problem is much more complex for those.
+        if ($relation->isMultiple()) {
+            // @todo when instrumentation will be implemented, log here.
+            return;
+        }
+
+        if ($this->isCircularDependency($parentClassName, $propertyName)) {
+            throw new QueryError(\sprintf(
+                "Circular dependency requested for relation '%s' of class %s",
+                $propertyName,
+                $parentClassName
+            ));
+        }
+
+        $entity = $relation->getEntity();
+
+        $child = $node->upsert($propertyName, $entity->getClassName());
+        $child->toggleMatch(true);
+        // @todo This will be called more than once.
+        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
+
+        if ($path) {
+            $this->doMatchRecursion($child, $path, $expression);
+        } else {
+            $child->withCondition($propertyName, $expression);
+        }
     }
 
     /**

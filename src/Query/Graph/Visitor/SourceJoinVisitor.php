@@ -7,9 +7,14 @@ namespace Goat\Mapper\Query\Graph\Visitor;
 use Goat\Mapper\Definition\Graph\RelationAnyToOne;
 use Goat\Mapper\Definition\Graph\RelationManyToMany;
 use Goat\Mapper\Definition\Graph\RelationOneToMany;
+use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Entity\QueryHelper;
 use Goat\Mapper\Query\Graph\RootNode;
+use Goat\Mapper\Query\Graph\Source;
+use Goat\Query\ExpressionColumn;
+use Goat\Query\ExpressionRelation;
+use Goat\Query\Where;
 
 class SourceJoinVisitor implements RootVisitor
 {
@@ -26,26 +31,13 @@ class SourceJoinVisitor implements RootVisitor
             ;
 
             if ($relation instanceof RelationAnyToOne) {
-                $this->handleKeyInSourceTableRelation(
-                    $context,
-                    $node->getAlias(),
-                    $relation,
-                    $source->getIdentifiers(),
-                );
+                $this->handleAnyToOne($source, $node, $context, $relation);
             } else if ($relation instanceof RelationOneToMany) {
-                $this->handleKeyInTargetTableRelation(
-                    $context,
-                    $node->getAlias(),
-                    $relation,
-                    $source->getIdentifiers(),
-                );
+                $this->handleOneToMany($source, $node, $context, $relation);
+            } else if ($relation instanceof RelationManyToMany) {
+                $this->handleManyToMany($source, $node, $context, $relation);
             } else {
-                $this->handleKeyInMappingTableRelation(
-                    $context,
-                    $node->getAlias(),
-                    $relation,
-                    $source->getIdentifiers(),
-                );
+                throw new QueryError(\sprintf("Handling of %d relations is not implemented yet.", \get_class($relation)));
             }
         }
     }
@@ -55,25 +47,67 @@ class SourceJoinVisitor implements RootVisitor
      *
      * "a" is the source, "b" the target.
      *
-     * a.id -> b.target_id
-     *
      * SELECT b.*
      * FROM b
      * WHERE b.target_id = ?
+     *
+     * OR, if source key is not its primary key:
+     *
+     * SELECT b.*
+     * FROM b
+     * INNER JOIN a ON a.join_key = b.target_id
+     * WHERE a.id = ?
      */
-    private function handleKeyInTargetTableRelation(
+    private function handleOneToMany(
+        Source $source,
+        RootNode $node,
         EntityQuery $context,
-        string $targetTableAlias,
-        RelationOneToMany $relation,
-        iterable $identifiers
+        RelationOneToMany $relation
     ): void {
-        $context->getQuery()->condition(
-            QueryHelper::createKeyCondition(
-                $targetTableAlias,
-                $relation->getTargetKey(),
-                $identifiers
-            ),
-        );
+        $query = $context->getQuery();
+
+        $sourcePrimaryKey = $relation->getOwner()->getPrimaryKey();
+        $sourceKey = $relation->getSourceKey();
+
+        $targetTableAlias = $node->getAlias();
+
+        if ($sourceKey->equals($sourcePrimaryKey)) {
+            // We apply value conditions directly on the target table using
+            // the target key, and be happy with it.
+            $context->getQuery()->condition(
+                QueryHelper::createKeyCondition(
+                    $targetTableAlias,
+                    $relation->getTargetKey(),
+                    $source->getIdentifiers()
+                ),
+            );
+        } else {
+            // We create the extra JOIN and apply conditions on the source
+            // table primary key.
+            $sourceTable = $relation->getOwner()->getTable();
+            $sourceTableAlias = $context->getNextAlias($sourceTable->getName());
+            $sourceTableExpression = ExpressionRelation::create($sourceTable->getName(), $sourceTableAlias, $sourceTable->getSchema());
+
+            $targetKeyColumnsMap = $relation->getTargetKey()->getColumnNames();
+            $sourceKeyColumnsMap = $relation->getSourceKey()->getColumnNames();
+
+            $joinConditions = (new Where());
+            foreach ($targetKeyColumnsMap as $i => $columnName) {
+                $joinConditions->isEqual(
+                    ExpressionColumn::create($columnName, $targetTableAlias),
+                    ExpressionColumn::create($sourceKeyColumnsMap[$i], $sourceTableAlias)
+                );
+            }
+            $query->innerJoin($sourceTableExpression, $joinConditions);
+
+            $context->getQuery()->condition(
+                QueryHelper::createKeyCondition(
+                    $sourceTableAlias,
+                    $sourcePrimaryKey,
+                    $source->getIdentifiers()
+                ),
+            );
+        }
     }
 
     /**
@@ -81,37 +115,47 @@ class SourceJoinVisitor implements RootVisitor
      *
      * "a" is the source, "b" the target.
      *
-     * a.target_id -> b.id
-     *
      * SELECT b.*
      * FROM b
      * INNER JOIN a ON a.target_id = b.id
      * WHERE a.id = ?
+     *
+     * If relation key is not the primary key, the generated query will remain
+     * valid in all cases, there is only one case to handle here.
      */
-    private function handleKeyInSourceTableRelation(
+    private function handleAnyToOne(
+        Source $source,
+        RootNode $node,
         EntityQuery $context,
-        string $targetTableAlias,
-        RelationAnyToOne $relation,
-        iterable $identifiers
+        RelationAnyToOne $relation
     ): void {
         $query = $context->getQuery();
 
-        $sourceTableAlias = $context->getNextAlias($relation->getOwner()->getTable()->getName());
+        $sourcePrimaryKey = $relation->getOwner()->getPrimaryKey();
 
-        QueryHelper::addReverseJoinStatement(
-            $query,
-            $relation,
-            $sourceTableAlias,
-            $targetTableAlias,
-            false
-        );
+        $targetTableAlias = $node->getAlias();
 
-        // Create conditions for filtering on the source table.
-        $query->condition(
+        $sourceTable = $relation->getOwner()->getTable();
+        $sourceTableAlias = $context->getNextAlias($sourceTable->getName());
+        $sourceTableExpression = ExpressionRelation::create($sourceTable->getName(), $sourceTableAlias, $sourceTable->getSchema());
+
+        $targetKeyColumnsMap = $relation->getTargetKey()->getColumnNames();
+        $sourceKeyColumnsMap = $relation->getSourceKey()->getColumnNames();
+
+        $joinConditions = (new Where());
+        foreach ($targetKeyColumnsMap as $i => $columnName) {
+            $joinConditions->isEqual(
+                ExpressionColumn::create($columnName, $targetTableAlias),
+                ExpressionColumn::create($sourceKeyColumnsMap[$i], $sourceTableAlias)
+            );
+        }
+        $query->innerJoin($sourceTableExpression, $joinConditions);
+
+        $context->getQuery()->condition(
             QueryHelper::createKeyCondition(
                 $sourceTableAlias,
-                $relation->getSourceKey(),
-                $identifiers
+                $sourcePrimaryKey,
+                $source->getIdentifiers()
             ),
         );
     }
@@ -121,19 +165,85 @@ class SourceJoinVisitor implements RootVisitor
      *
      * "a" is the source, "b" the target.
      *
-     * "a"."id" -> "mapping"."a_id", "mapping.b_id" -> "b"
+     * SELECT b.*
+     * FROM b
+     * INNER JOIN mapping ON mapping.b_id = b.id
+     * WHERE mapping.a_id = ?
+     *
+     * OR, if source key is not its primary key:
      *
      * SELECT b.*
      * FROM b
-     * LEFT JOIN mapping ON mapping.b_id = b.id
+     * INNER JOIN mapping m ON m.b_id = b.id
+     * INNER JOIN a ON a.join_key = m.a_id
      * WHERE mapping.a_id = ?
      */
-    private function handleKeyInMappingTableRelation(
+    private function handleManyToMany(
+        Source $source,
+        RootNode $node,
         EntityQuery $context,
-        string $targetTableAlias,
-        RelationManyToMany $relation,
-        iterable $identifiers
+        RelationManyToMany $relation
     ): void {
-        throw new \Exception("Not implemented yet.");
+        $query = $context->getQuery();
+
+        $sourcePrimaryKey = $relation->getOwner()->getPrimaryKey();
+        $sourceKey = $relation->getSourceKey();
+
+        $targetTableAlias = $node->getAlias();
+
+        // Add the mapping table JOIN (which is mandatory).
+        $mappingTable = $relation->getMappingTable();
+        $mappingTableAlias = $context->getNextAlias($mappingTable->getName());
+        $mappingTableExpression = ExpressionRelation::create($mappingTable->getName(), $mappingTableAlias, $mappingTable->getSchema());
+
+        $targetKeyColumnsMap = $relation->getTargetKey()->getColumnNames();
+        $targetMappingKeyColumnsMap = $relation->getMappingTargetKey()->getColumnNames();
+
+        $mappingJoinConditions = (new Where());
+        foreach ($targetKeyColumnsMap as $i => $columnName) {
+            $mappingJoinConditions->isEqual(
+                ExpressionColumn::create($columnName, $targetTableAlias),
+                ExpressionColumn::create($targetMappingKeyColumnsMap[$i], $mappingTableAlias)
+            );
+        }
+        $query->innerJoin($mappingTableExpression, $mappingJoinConditions);
+
+        if ($sourceKey->equals($sourcePrimaryKey)) {
+            // We apply value conditions directly on the mapping table using
+            // the source key, and be happy with it.
+            $context->getQuery()->condition(
+                QueryHelper::createKeyCondition(
+                    $mappingTableAlias,
+                    $relation->getMappingSourceKey(),
+                    $source->getIdentifiers()
+                ),
+            );
+        } else {
+            // We create the extra JOIN and apply conditions on the source
+            // table primary key.
+            $sourceTable = $relation->getOwner()->getTable();
+            $sourceTableAlias = $context->getNextAlias($sourceTable->getName());
+            $sourceTableExpression = ExpressionRelation::create($sourceTable->getName(), $sourceTableAlias, $sourceTable->getSchema());
+
+            $sourceKeyColumnsMap = $relation->getSourceKey()->getColumnNames();
+            $sourceMappingKeyColumnsMap = $relation->getMappingSourceKey()->getColumnNames();
+
+            $sourceJoinConditions = (new Where());
+            foreach ($sourceMappingKeyColumnsMap as $i => $columnName) {
+                $sourceJoinConditions->isEqual(
+                    ExpressionColumn::create($columnName, $mappingTableAlias),
+                    ExpressionColumn::create($sourceKeyColumnsMap[$i], $sourceTableAlias)
+                );
+            }
+            $query->innerJoin($sourceTableExpression, $sourceJoinConditions);
+
+            $context->getQuery()->condition(
+                QueryHelper::createKeyCondition(
+                    $sourceTableAlias,
+                    $sourcePrimaryKey,
+                    $source->getIdentifiers()
+                ),
+            );
+        }
     }
 }

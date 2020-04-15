@@ -91,6 +91,10 @@ Priority 0, we need it ASAP:
    classes and call the builder if necessary (using the entity self-defining
    interface),
 
+ - [x] fix join statements for relations: when source or target key is not the
+   primary key it must join with the target/source table when there are given
+   identifiers, because we can't use the intermediate key to match,
+
  - [x] remove the repository as a first class citizen and make it transcient,
    this means that all queries can be created without materializing the
    repositories,
@@ -101,14 +105,21 @@ Priority 0, we need it ASAP:
  - [ ] identify relations using a predicitable name, and a direction, so that
    all relations and their inverse relations can be identified,
 
- - [ ] create various compilation passes after builder for fixing data.
+ - [ ] create various compilation passes after builder for fixing data and
+   materializing reverse relations.
 
 Priority 1, we need it before being able to use it:
 
  - [x] implement to one conditions using property path e.g.
    'entity.property.property' = foo,
 
- - [ ] handle mapping tables,
+ - [ ] in builder, ensure that key column names can be entity property names
+   and find a way to resolve them in a smart way,
+
+ - [x] handle mapping tables in SQL builder,
+
+ - [x] with mapping tables builder, ensure mapping keys are compatible with
+   their counterpart in source and target tables,
 
  - [ ] implement the N+1 bulk lazy load solution for large result sets with
    any to many collection,
@@ -147,6 +158,11 @@ Priority 1, we need it before being able to use it:
 
 Priority 2, industrialisation:
 
+ - [ ] refactore SQL-comparison tests to ignore SELECT clauses when checking
+   for JOINs statements,
+
+ - [ ] write specific SQL-comparison tests for entity columns SELECTion,
+
  - [ ] implement SQL schema introspector in goat-query,
 
  - [ ] implement SQL builder introspector in goat-query,
@@ -166,7 +182,7 @@ Priority 2, industrialisation:
 
  - [ ] implement SQL schema parsing auto configuration (from SQL to PHP class),
 
- - [ ] implement array-based configuration,
+ - [ ] re-implement array-based configuration,
 
  - [ ] implement yaml reader,
 

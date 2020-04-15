@@ -67,6 +67,24 @@ class Key implements Debuggable
         return \count($this->columns);
     }
 
+    public function equals(Key $other): bool
+    {
+        if ($other === $this) {
+            return true;
+        }
+        if (!\count($this->columns) !== \count($other->columns)) {
+            return false;
+        }
+
+        foreach ($this->columns as $i => $column) {
+            if (!$column->equals($other->columns[$i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function isCompatible(Key $other): bool
     {
         // This is a very naive algorithm. 

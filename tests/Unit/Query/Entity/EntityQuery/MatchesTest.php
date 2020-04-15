@@ -11,7 +11,7 @@ use Goat\Query\ExpressionRaw;
 use Goat\Query\SelectQuery;
 use Ramsey\Uuid\Uuid;
 
-final class SelectTest extends AbstractRepositoryTest
+final class MatchesTest extends AbstractRepositoryTest
 {
     public function testConditionWithExistingColumnInKey(): void
     {

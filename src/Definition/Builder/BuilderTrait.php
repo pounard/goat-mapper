@@ -13,17 +13,17 @@ use Goat\Mapper\Error\ConfigurationError;
 
 trait BuilderTrait
 {
-    private function ensureKeysCompatibility(Key $a, Key $b): void
+    protected function ensureKeysCompatibility(Key $a, Key $b, ?string $message = null): void
     {
         if (!$a->isCompatible($b)) {
             throw new ConfigurationError(\sprintf(
-                "Relation for property '%s' source key is not compatible with target key.",
+                $message ?? "Relation for property '%s' source key is not compatible with target key.",
                 __CLASS__
             ));
         }
     }
 
-    private function ensureKeyIsValid(array $propertyTypeMap): void
+    protected function ensureKeyIsValid(array $propertyTypeMap): void
     {
         foreach ($propertyTypeMap as $propertyName => $type) {
             if (!\is_string($propertyName)) {
@@ -35,26 +35,26 @@ trait BuilderTrait
         }
     }
 
-    private function ensureClassExists(string $className): void
+    protected function ensureClassExists(string $className): void
     {
         if (!\class_exists($className)) {
             throw new ConfigurationError(\sprintf("Class '%s' does not exist", $className));
         }
     }
 
-    private function normalizeName(string $name): string
+    protected function normalizeName(string $name): string
     {
         return \strtolower(\preg_replace('/[^a-z0-9]+/i', '_', $this->className));
     }
 
-    private function lazy(string $methodName): callable
+    protected function lazy(string $methodName): callable
     {
         return function () use ($methodName) {
             return \call_user_func([$this, $methodName]);
         };
     }
 
-    private function doCompileColumnList(array $source, ?array $nameMap = null): array
+    protected function doCompileColumnList(array $source, ?array $nameMap = null): array
     {
         $ret = [];
         foreach ($source as $propertyName => $type) {
@@ -71,17 +71,17 @@ trait BuilderTrait
         return $ret;
     }
 
-    private function doCompileKey(array $source, ?array $nameMap = null): Key
+    protected function doCompileKey(array $source, ?array $nameMap = null): Key
     {
         return new Key($this->doCompileColumnList($source, $nameMap));
     }
 
-    private function doCompilePrimaryKey(array $source, ?array $nameMap = null): PrimaryKey
+    protected function doCompilePrimaryKey(array $source, ?array $nameMap = null): PrimaryKey
     {
         return new PrimaryKey($this->doCompileColumnList($source, $nameMap));
     }
 
-    private function createProxy(string $className, DefinitionRegistry $definitionRegistry): EntityProxy
+    protected function createProxy(string $className, DefinitionRegistry $definitionRegistry): EntityProxy
     {
         return new EntityProxy($className, static function () use ($className, $definitionRegistry) {
             return $definitionRegistry->getDefinition($className);

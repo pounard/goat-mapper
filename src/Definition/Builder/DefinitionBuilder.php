@@ -52,7 +52,7 @@ final class DefinitionBuilder
      */
     public function setTableName(string $tableName, ?string $schema = null): void
     {
-        $this->table = new Table($tableName, $schema) ;
+        $this->table = new Table($tableName, $schema);
     }
 
     /**
@@ -129,8 +129,6 @@ final class DefinitionBuilder
         string $className
     ): ManyToManyDefinitionBuilder {
         $this->ensurePropertyCanHandleRelation($propertyName);
-
-        throw new \Exception("Not implemeted yet.");
 
         return $this->relationBuilders[$propertyName] = new ManyToManyDefinitionBuilder(
             $propertyName,

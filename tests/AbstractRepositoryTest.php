@@ -79,9 +79,9 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
             // Unit testing
             WithManyToManyBarRelation::class,
             WithManyToManyFooRelation::class,
+            WithOneToManyRelation::class,
             WithManyToOneRelation::class,
             WithMultipleColumnPrimaryKey::class,
-            WithOneToManyRelation::class,
             WithoutRelation::class,
         ];
     }

@@ -21,10 +21,18 @@ class Column
     }
 
     /**
-     * Get SQL type
+     * Get SQL type.
      */
     public function getType(): string
     {
         return $this->type;
+    }
+
+    /**
+     * Has this column the same spec?
+     */
+    public function equals(Column $other): bool
+    {
+        return $this->name === $other->name && $this->type === $this->type;
     }
 }

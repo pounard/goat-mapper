@@ -4,16 +4,30 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Tests\Mock;
 
+use Goat\Mapper\Definition\Builder\DefinitionBuilder;
+use Goat\Mapper\Definition\Registry\StaticEntityDefinition;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-class WithManyToManyBarRelation
+class WithManyToManyBarRelation implements StaticEntityDefinition
 {
-    /** @var UuidInterface */
-    private $id;
+    private ?UuidInterface $id = null;
+    /** @var WithManyToManyFooRelation[] */
+    private ?iterable $relatedCollection = null;
 
-    /** @var WithoutRelation[] */
-    private $relatedCollection;
+    public static function defineEntity(DefinitionBuilder $builder): void
+    {
+        $builder->setTableName('with_many_to_many_bar');
+        $builder->addProperty('id');
+        $builder->setPrimaryKey([
+            'id' => 'uuid',
+        ]);
+        $relation = $builder->addManyToManyRelation('relatedCollection', WithManyToManyFooRelation::class);
+        $relation->setMappingTable('bar_to_foo');
+        $relation->setMappingSourceKey(['bar_id' => 'uuid']);
+        $relation->setMappingTargetKey(['foo_id' => 'int']);
+        $relation->setTargetKeyIfNotPrimaryKey(['serial' => 'int']);
+    }
 
     public static function toDefinitionArray(): array
     {
@@ -68,6 +82,6 @@ SQL
 
     public function getRelatedCollection(): iterable
     {
-        return $this->relatedCollection;
+        return $this->relatedCollection ?? [];
     }
 }

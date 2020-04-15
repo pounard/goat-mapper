@@ -9,6 +9,8 @@ use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
 use Goat\Mapper\Tests\AbstractRepositoryTest;
+use Goat\Mapper\Tests\Mock\WithManyToManyBarRelation;
+use Goat\Mapper\Tests\Mock\WithManyToManyFooRelation;
 use Goat\Mapper\Tests\Mock\WithManyToOneRelation;
 use Goat\Mapper\Tests\Mock\WithOneToManyRelation;
 
@@ -36,27 +38,70 @@ final class DefinitionBuilderGraphTest extends AbstractRepositoryTest
 
         self::assertSame(
             $entity->getTable(),
-            $target->getRelation(WithOneToManyRelation::class)->getEntity()->getTable()
-        );
-
-        self::assertSame(
-            $target->getTable(),
-            $target->getRelation(WithOneToManyRelation::class)->getOwner()->getTable()
-        );
-
-        self::assertSame(
-            $target->getTable(),
-            $entity->getRelation(WithManyToOneRelation::class)->getEntity()->getTable()
+            $target->getRelation('relatedEntity')->getEntity()->getTable()
         );
 
         self::assertSame(
             $entity->getTable(),
-            $entity->getRelation(WithManyToOneRelation::class)->getOwner()->getTable()
+            $target->getRelation('relatedEntityUsingSerial')->getEntity()->getTable()
+        );
+
+        self::assertSame(
+            $target->getTable(),
+            $target->getRelation('relatedEntity')->getOwner()->getTable()
+        );
+
+        self::assertSame(
+            $target->getTable(),
+            $target->getRelation('relatedEntityUsingSerial')->getOwner()->getTable()
+        );
+
+        self::assertSame(
+            $target->getTable(),
+            $entity->getRelation('relatedCollection')->getEntity()->getTable()
+        );
+
+        self::assertSame(
+            $target->getTable(),
+            $entity->getRelation('relatedCollectionUsingSerial')->getEntity()->getTable()
+        );
+
+        self::assertSame(
+            $entity->getTable(),
+            $entity->getRelation('relatedCollection')->getOwner()->getTable()
+        );
+
+        self::assertSame(
+            $entity->getTable(),
+            $entity->getRelation('relatedCollectionUsingSerial')->getOwner()->getTable()
         );
     }
 
     public function testManytoManyRelation(): void
     {
-        self::markTestIncomplete();
+        $definitionRegistry = $this->createDefinitionRegistry();
+
+        $entity = $definitionRegistry->getDefinition(WithManyToManyFooRelation::class);
+        $target = $definitionRegistry->getDefinition(WithManyToManyBarRelation::class);
+
+        self::assertSame(
+            $entity->getTable(),
+            $target->getRelation(WithManyToManyFooRelation::class)->getEntity()->getTable()
+        );
+
+        self::assertSame(
+            $target->getTable(),
+            $target->getRelation(WithManyToManyFooRelation::class)->getOwner()->getTable()
+        );
+
+        self::assertSame(
+            $target->getTable(),
+            $entity->getRelation(WithManyToManyBarRelation::class)->getEntity()->getTable()
+        );
+
+        self::assertSame(
+            $entity->getTable(),
+            $entity->getRelation(WithManyToManyBarRelation::class)->getOwner()->getTable()
+        );
     }
 }
