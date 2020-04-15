@@ -7,6 +7,13 @@ This is not an ORM, not really, even thought it seriously looks like it. Note
 that one main differences between what exists and this ORM is that it's read
 only. Yes, you read it right, it is READ-ONLY, and it is by design.
 
+It's build on top of:
+
+ - `makinacorpus/goat-query` - https://github.com/pounard/goat-query
+ - `makinacorpus/generated-hydrator-bundle` - https://github.com/makinacorpus/generated-hydrator-bundle
+ - `ocramius/generated-hydrator` - https://github.com/Ocramius/GeneratedHydrator
+ - `ocramius/proxy-manager` - https://github.com/Ocramius/ProxyManager
+
 It is meant to be used in Domain Driven Development code, where writes should
 be implemented as dedicated methods with semantic meaning. This tool does not
 wrap your SQL, it just help you reading your data more efficiently, and make
@@ -33,9 +40,9 @@ queries to load them, and implement some solutions for the N+1 problem:
    makinacorpus/generated-hydrator-bundle on top to support nested
    object tree.
 
-Now it has some problems, let's be honest, if you need an ORM, use Doctrine,
-don't come and report be any bugs, it will NEVER be as powerful as other
-complete and mature solutions are such as the Doctrine ORM.
+Let's be honest, **this is an experimental project**, if you need an ORM,
+use Doctrine, don't come and report be any bugs, it will NEVER be as powerful
+as other complete and mature solutions are such as the Doctrine ORM.
 
 # Installation
 
