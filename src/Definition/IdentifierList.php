@@ -35,7 +35,7 @@ class IdentifierList implements \IteratorAggregate
 
     final public function toArray(): array
     {
-        return $this->data;
+        return \array_values($this->data);
     }
 
     /**

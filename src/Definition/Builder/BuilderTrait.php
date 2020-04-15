@@ -47,13 +47,6 @@ trait BuilderTrait
         return \strtolower(\preg_replace('/[^a-z0-9]+/i', '_', $this->className));
     }
 
-    protected function lazy(string $methodName): callable
-    {
-        return function () use ($methodName) {
-            return \call_user_func([$this, $methodName]);
-        };
-    }
-
     protected function doCompileColumnList(array $source, ?array $nameMap = null): array
     {
         $ret = [];

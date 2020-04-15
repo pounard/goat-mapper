@@ -4,82 +4,88 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Tests\Unit\Definition;
 
-use Goat\Mapper\Definition\Column;
 use Goat\Mapper\Definition\Identifier;
-use Goat\Mapper\Definition\Key;
-use Goat\Mapper\Error\QueryError;
+use Goat\Mapper\Definition\IdentifierList;
 use PHPUnit\Framework\TestCase;
 
-final class IdentifierTest extends TestCase
+final class IdentifierListTest extends TestCase
 {
-    public function testNormalizeAcceptsSelf(): void
+    public function testIsEmpty(): void
     {
-        $one = new Identifier(['a', 'b']);
-        $two = Identifier::normalize($one);
+        $list = new IdentifierList([]);
 
-        self::assertSame($one, $two);
-    }
+        self::assertTrue($list->isEmpty());
 
-    public function testNormalizeAcceptsArray(): void
-    {
-        $instance = Identifier::normalize(['a', 1]);
-
-        self::assertSame(['a', 1], $instance->toArray());
-    }
-
-    public function testNormalizeAcceptsIterable(): void
-    {
-        $generator = static function () {
-            yield 'a';
-            yield 1;
-        };
-        $instance = Identifier::normalize($generator());
-
-        self::assertSame(['a', 1], $instance->toArray());
-    }
-
-    public function testNormalizeConvertsAnythingElseToArray(): void
-    {
-        $instance = Identifier::normalize(17);
-
-        self::assertSame([17], $instance->toArray());
-    }
-
-    public function testConstructDropKeys(): void
-    {
-        $instance = new Identifier([
-            'foo' => 'bar',
-            'baz' => 13,
+        $list = new IdentifierList([
+            new Identifier(['foo']),
         ]);
 
-        self::assertSame(['bar', 13], $instance->toArray());
+        self::assertFalse($list->isEmpty());
     }
 
-    public function testToString(): void
+    public function testExists(): void
     {
-        $instance = new Identifier(['bar', 13]);
+        $list = new IdentifierList([
+            new Identifier(['foo']),
+            new Identifier(['foo', 'a']),
+            new Identifier(['bar', 2]),
+        ]);
 
-        self::assertSame("('bar',13)", $instance->toString());
+        self::assertTrue(
+            $list->exists(
+                new Identifier(['foo'])
+            )
+        );
+
+        self::assertTrue(
+            $list->exists(
+                new Identifier(['foo', 'a'])
+            )
+        );
+
+        self::assertFalse(
+            $list->exists(
+                new Identifier(['foo', 'b'])
+            )
+        );
+
+        self::assertFalse(
+            $list->exists(
+                new Identifier(['bar'])
+            )
+        );
     }
 
-    public function testFailIfNotCompatible(): void
+    public function testExistsWhenEmpty(): void
     {
-        $instance = new Identifier(['bar', 13]);
+        $list = new IdentifierList([]);
 
-        $compatible = new Key([
-            new Column('foo', 'string'),
-            new Column('bar', 'int'),
+        self::assertFalse(
+            $list->exists(
+                new Identifier(['foo'])
+            )
+        );
+    }
+
+    public function testIterationAndToArray(): void
+    {
+        $list = new IdentifierList([
+            new Identifier(['a']),
+            new Identifier(['b']),
         ]);
-        self::assertTrue($instance->isCompatible($compatible));
 
-        $notComptible = new Key([
-            new Column('foo', 'string'),
-        ]);
-        self::assertFalse($instance->isCompatible($notComptible));
+        $array = $list->toArray();
+        $count = 0;
 
-        $instance->failIfNotCompatible($compatible);
+        foreach ($list as $index => $identifier) {
+            ++$count;
+            self::assertTrue(
+                $identifier->equals(
+                    $array[$index]
+                )
+            );
+        }
 
-        self::expectException(QueryError::class);
-        $instance->failIfNotCompatible($notComptible);
+        self::assertSame(2, $count);
     }
 }

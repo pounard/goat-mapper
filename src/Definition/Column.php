@@ -33,6 +33,6 @@ class Column
      */
     public function equals(Column $other): bool
     {
-        return $this->name === $other->name && $this->type === $this->type;
+        return $this->name === $other->name && $this->type === $other->type;
     }
 }
