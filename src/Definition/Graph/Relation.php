@@ -34,12 +34,22 @@ interface Relation extends Property
     public function getEntity(): Entity;
 
     /**
-     * Get key in target table, it might be the primary key.
+     * Is source key different from source entity primary key?
      */
-    public function getTargetKey(): Key;
+    public function hasSourceKey(): bool;
 
     /**
      * Get key in source table, it might be the primary key.
      */
     public function getSourceKey(): Key;
+
+    /**
+     * Is target key different from target entity primary key?
+     */
+    public function hasTargetKey(): bool;
+
+    /**
+     * Get key in target table, it might be the primary key.
+     */
+    public function getTargetKey(): Key;
 }

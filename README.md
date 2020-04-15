@@ -113,9 +113,6 @@ Priority 1, we need it before being able to use it:
  - [x] implement to one conditions using property path e.g.
    'entity.property.property' = foo,
 
- - [ ] in builder, ensure that key column names can be entity property names
-   and find a way to resolve them in a smart way,
-
  - [x] handle mapping tables in SQL builder,
 
  - [x] with mapping tables builder, ensure mapping keys are compatible with
@@ -131,14 +128,15 @@ Priority 1, we need it before being able to use it:
  - [x] implement functionnal tests with a real SQL backend behind (right now
    only SQL generation is tested),
 
- - [ ] write much more functionnal tests,
-
- - [ ] write a code generator as a cache decorator for the finder API that would
+ - [x] write a code generator as a cache decorator for the finder API that would
    generate very fast and efficient PHP code to create repository definitions,
    based upon the intermediate reprensentation,
 
- - [ ] make that PHP cache not so stupid and lazy load repository definitions
+ - [x] make that PHP cache not so stupid and lazy load repository definitions
    on demand,
+
+ - [ ] industrialise the PHP cache writer, decouple function name inflector,
+   file name locator, and file loader,
 
  - [ ] add finder in builder to ensure relation target repositories are created
    or exist when adding new relations, make it lazy with a link resolution phase
@@ -157,6 +155,11 @@ Priority 1, we need it before being able to use it:
  - [ ] write poor's man documentation for basic use cases.
 
 Priority 2, industrialisation:
+
+ - [ ] write much more functionnal tests,
+
+ - [ ] in builder, ensure that key column names can be entity property names
+   and find a way to resolve them in a smart way,
 
  - [ ] refactore SQL-comparison tests to ignore SELECT clauses when checking
    for JOINs statements,

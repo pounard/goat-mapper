@@ -95,12 +95,11 @@ final class DefaultEntity extends AbstractNode implements Entity
             throw new ConfigurationError(\sprintf("Property %s was already set.", $propertyName));
         }
 
-        $this->properties[$propertyName] = $property;
-
         if ($property instanceof Relation) {
             $this->relations[$propertyName] = $property;
             $this->relationClassNameMap[$property->getEntity()->getClassName()][] = $propertyName;
         } else if ($property instanceof Value) {
+            $this->properties[$propertyName] = $property;
             $this->columnMapCache[$property->getName()] = $property->getColumnName();
         }
     }

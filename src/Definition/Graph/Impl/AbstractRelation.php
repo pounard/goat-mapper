@@ -77,7 +77,15 @@ abstract class AbstractRelation extends AbstractProperty implements Relation
     }
 
     /**
-     * Get key in source table, it might be the primary key.
+     * {@inheritdoc}
+     */
+    final public function hasSourceKey(): bool
+    {
+        return null !== $this->sourceKey;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     final public function getSourceKey(): Key
     {
@@ -101,7 +109,15 @@ abstract class AbstractRelation extends AbstractProperty implements Relation
     }
 
     /**
-     * Get key in target table, it might be the primary key.
+     * {@inheritdoc}
+     */
+    final public function hasTargetKey(): bool
+    {
+        return null !== $this->targetKey;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     final public function getTargetKey(): Key
     {

@@ -7,16 +7,9 @@ namespace Goat\Mapper\Definition\Registry;
 use Goat\Mapper\Definition\Builder\DefinitionBuilder;
 use Goat\Mapper\Definition\Graph\Entity;
 
-final class StaticEntityDefinitionRegistry implements DefinitionRegistry
+final class StaticEntityDefinitionRegistry extends WithParentDefinitionRegistry
 {
     use DefinitionRegistryTrait;
-
-    private ?DefinitionRegistry $parentDefinitionRegistry;
-
-    public function setParentDefinitionRegistry(DefinitionRegistry $parentDefinitionRegistry = null): void
-    {
-        $this->parentDefinitionRegistry = $parentDefinitionRegistry;
-    }
 
     /**
      * {@inheritdoc}
@@ -28,7 +21,9 @@ final class StaticEntityDefinitionRegistry implements DefinitionRegistry
 
             \call_user_func([$className, 'defineEntity'], $builder);
 
-            return $builder->compile($this->parentDefinitionRegistry ?? $this);
+            return $builder->compile(
+                $this->getParentDefinitionRegistry()
+            );
         }
 
         $this->entityDoesNotExist($className);

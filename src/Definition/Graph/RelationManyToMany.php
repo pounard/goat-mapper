@@ -20,9 +20,19 @@ interface RelationManyToMany extends Relation
     public function getMappingTable(): Table;
 
     /**
+     * Is source key in mapping table different from source entity primary key?
+     */
+    public function hasMappingSourceKey(): bool;
+
+    /**
      * Get target relation key in mapping table.
      */
     public function getMappingTargetKey(): Key;
+
+    /**
+     * Is target key in mapping table different from target entity primary key?
+     */
+    public function hasMappingTargetKey(): bool;
 
     /**
      * Get source relation key in mapping table.

@@ -49,6 +49,14 @@ final class DefaultRelationManyToMany extends AbstractRelation implements Relati
     /**
      * {@inheritdoc}
      */
+    public function hasMappingSourceKey(): bool
+    {
+        return null !== $this->mappingSourceKey;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getMappingSourceKey(): Key
     {
         return $this->mappingSourceKey ?? $this->getOwner()->getPrimaryKey();
@@ -60,6 +68,14 @@ final class DefaultRelationManyToMany extends AbstractRelation implements Relati
     public function setMappingTargetKey(Key $mappingTargetKey): void
     {
         $this->mappingTargetKey = $mappingTargetKey;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasMappingTargetKey(): bool
+    {
+        return null !== $this->mappingTargetKey;
     }
 
     /**

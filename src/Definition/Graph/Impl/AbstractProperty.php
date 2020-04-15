@@ -10,7 +10,7 @@ use Goat\Mapper\Error\ConfigurationError;
 abstract class AbstractProperty extends AbstractNode
 {
     private string $name;
-    private bool $allowsNull = false;
+    private bool $allowsNull = true;
     private ?Entity $owner = null;
 
     public function __construct(string $name)
