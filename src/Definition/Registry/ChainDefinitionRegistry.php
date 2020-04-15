@@ -12,12 +12,26 @@ final class ChainDefinitionRegistry implements DefinitionRegistry
     use DefinitionRegistryTrait;
 
     /** @var DefinitionRegistry[] */
-    private iterable $instances;
+    private array $instances;
 
     /** @param DefinitionRegistry[] $instances */
-    public function __construct(iterable $instances)
+    public function __construct(iterable $instances = null)
     {
-        $this->instances = $instances;
+        if (\is_array($instances)) {
+            $this->instances = $instances;
+        } else if (null !== $instances) {
+            $this->instances = \iterator_to_array($instances);
+        } else {
+            $this->instances = [];
+        }
+    }
+
+    /**
+     * Add single instance to chain. Note this can work only i
+     */
+    public function add(DefinitionRegistry $definitionRegistry): void
+    {
+        $this->instances[] = $definitionRegistry;
     }
 
     /**
