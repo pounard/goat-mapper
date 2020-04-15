@@ -16,7 +16,7 @@ abstract class AbstractRelationDefinitionBuilder implements RelationDefinitionBu
     use BuilderTrait;
 
     protected string $sourcePropertyName;
-    private string $targetClassName;
+    protected string $targetClassName;
     private int $mode;
     private ?Key $targetKey = null;
     private ?Key $sourceKey = null;

@@ -107,7 +107,7 @@ class QueryBuilderFactory
         ;
 
         return $this
-            ->query($relation->getEntity()->getClassName())
+            ->query($relation->getClassName())
             ->from($className, $propertyName, $identifiers)
         ;
     }

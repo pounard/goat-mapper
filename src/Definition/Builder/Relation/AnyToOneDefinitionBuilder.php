@@ -41,7 +41,11 @@ final class AnyToOneDefinitionBuilder extends AbstractRelationDefinitionBuilder
      */
     protected function doCompile(Entity $entity): Relation
     {
-        $relation = new DefaultRelationAnyToOne($entity, $this->sourcePropertyName  );
+        $relation = new DefaultRelationAnyToOne(
+            $entity,
+            $this->sourcePropertyName,
+            $this->targetClassName
+        );
 
         if ($key = $this->compileSourceKey(true)) {
             $relation->setSourceKey($key);

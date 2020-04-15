@@ -17,9 +17,9 @@ final class DefaultRelationManyToMany extends AbstractRelation implements Relati
     private ?Key $mappingSourceKey = null;
     private ?Key $mappingTargetKey = null;
 
-    public function __construct(Entity $entity, string $name)
+    public function __construct(Entity $entity, string $name, string $className)
     {
-        parent::__construct($entity, $name, Relation::MODE_MANY_TO_MANY);
+        parent::__construct($entity, $name, $className, Relation::MODE_MANY_TO_MANY);
     }
 
     /**

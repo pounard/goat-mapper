@@ -11,9 +11,9 @@ use Goat\Mapper\Definition\Graph\RelationOneToMany;
 
 final class DefaultRelationOneToMany extends AbstractRelation implements RelationOneToMany
 {
-    public function __construct(Entity $entity, string $name)
+    public function __construct(Entity $entity, string $name, string $className)
     {
-        parent::__construct($entity, $name, Relation::MODE_ONE_TO_MANY);
+        parent::__construct($entity, $name, $className, Relation::MODE_ONE_TO_MANY);
     }
 
     /**

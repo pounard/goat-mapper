@@ -12,11 +12,12 @@ use Goat\Mapper\Error\ConfigurationError;
 abstract class AbstractRelation extends AbstractProperty implements Relation
 {
     private int $mode;
+    private string $className;
     private ?Entity $entity = null;
     private ?Key $sourceKey = null;
     private ?Key $targetKey = null;
 
-    public function __construct(Entity $entity, string $name, int $mode)
+    public function __construct(Entity $entity, string $name, string $className, int $mode)
     {
         if ($mode < 1 || 4 < $mode) {
             throw new \InvalidArgumentException(\sprintf("Mode must be one of the %s::MODE_* constants.", __CLASS__));
@@ -24,8 +25,17 @@ abstract class AbstractRelation extends AbstractProperty implements Relation
 
         parent::__construct($name);
 
+        $this->className = $className;
         $this->entity = $entity;
         $this->mode = $mode;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getClassName(): string
+    {
+        return $this->className;
     }
 
     /**

@@ -126,7 +126,12 @@ final class ManyToManyDefinitionBuilder extends AbstractRelationDefinitionBuilde
      */
     protected function doCompile(Entity $entity): Relation
     {
-        $relation = new DefaultRelationManyToMany($entity, $this->sourcePropertyName);
+        $relation = new DefaultRelationManyToMany(
+            $entity,
+            $this->sourcePropertyName,
+            $this->targetClassName
+        );
+
         $relation->setMappingTable($this->compileMappingTable());
 
         $mappingSourceKey = $this->compileMappingSourceKey();

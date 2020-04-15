@@ -97,7 +97,7 @@ final class DefaultEntity extends AbstractNode implements Entity
 
         if ($property instanceof Relation) {
             $this->relations[$propertyName] = $property;
-            $this->relationClassNameMap[$property->getEntity()->getClassName()][] = $propertyName;
+            $this->relationClassNameMap[$property->getClassName()][] = $propertyName;
         } else if ($property instanceof Value) {
             $this->properties[$propertyName] = $property;
             $this->columnMapCache[$property->getName()] = $property->getColumnName();

@@ -86,28 +86,57 @@ final class PhpDumper
 
     private function dumpRelationAnyToOne(RelationAnyToOne $relation, Writer $writer): void
     {
+        $className = $relation->getClassName();
+        $this->dumpEntityProxy($className, $writer, '$proxy');
+
         $name = $this->exportString($relation->getName());
         $mode = $relation->getMode();
-        $this->dumpEntityProxy($relation->getEntity()->getClassName(), $writer, '$proxy');
-        $writer->write("\$relation = new \Goat\Mapper\Definition\Graph\Impl\DefaultRelationAnyToOne(\$proxy, " . $name . ", " . $mode . ");");
+        $writer->write("\$relation = new \Goat\Mapper\Definition\Graph\Impl\DefaultRelationAnyToOne(");
+        $writer->indentationInc();
+        $writer->write("\$proxy,");
+        $writer->write($name . ",");
+        $writer->write("\\" . $className . "::class,");
+        $writer->write((string)$mode);
+        $writer->indentationDec();
+        $writer->write(");");
+
         $this->dumpRelationCommons($relation, $writer);
+
         $writer->write("\$ret->addProperty(\$relation);");
     }
 
     private function dumpRelationOneToMany(RelationOneToMany $relation, Writer $writer): void
     {
+        $className = $relation->getClassName();
+        $this->dumpEntityProxy($className, $writer, '$proxy');
+
         $name = $this->exportString($relation->getName());
-        $this->dumpEntityProxy($relation->getEntity()->getClassName(), $writer, '$proxy');
-        $writer->write("\$relation = new \Goat\Mapper\Definition\Graph\Impl\DefaultRelationOneToMany(\$proxy, " . $name . ");");
+        $writer->write("\$relation = new \Goat\Mapper\Definition\Graph\Impl\DefaultRelationOneToMany(");
+        $writer->indentationInc();
+        $writer->write("\$proxy,");
+        $writer->write($name . ",");
+        $writer->write("\\" . $className . "::class");
+        $writer->indentationDec();
+        $writer->write(");");
+
         $this->dumpRelationCommons($relation, $writer);
+
         $writer->write("\$ret->addProperty(\$relation);");
     }
 
     private function dumpRelationManyToMany(RelationManyToMany $relation, Writer $writer): void
     {
+        $className = $relation->getClassName();
+        $this->dumpEntityProxy($className, $writer, '$proxy');
+
         $name = $this->exportString($relation->getName());
-        $this->dumpEntityProxy($relation->getEntity()->getClassName(), $writer, '$proxy');
-        $writer->write("\$relation = new \Goat\Mapper\Definition\Graph\Impl\DefaultRelationManyToMany(\$proxy, " . $name . ");");
+        $writer->write("\$relation = new \Goat\Mapper\Definition\Graph\Impl\DefaultRelationManyToMany(");
+        $writer->indentationInc();
+        $writer->write("\$proxy,");
+        $writer->write($name . ",");
+        $writer->write("\\" . $className . "::class");
+        $writer->indentationDec();
+        $writer->write(");");
 
         $this->dumpRelationCommons($relation, $writer);
 

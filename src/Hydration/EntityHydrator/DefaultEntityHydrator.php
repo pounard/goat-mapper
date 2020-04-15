@@ -40,7 +40,7 @@ final class DefaultEntityHydrator implements EntityHydrator
             \assert($relation instanceof Relation);
 
             $propertyName = $relation->getName();
-            $relationClassName = $relation->getEntity()->getClassName();
+            $relationClassName = $relation->getClassName();
 
             if (\array_key_exists($propertyName, $values)) {
                 // It was eagerly loaded.

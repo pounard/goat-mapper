@@ -14,6 +14,11 @@ interface Relation extends Property
     const MODE_MANY_TO_MANY = 4;
 
     /**
+     * Get target class name.
+     */
+    public function getClassName(): string;
+
+    /**
      * Get inverse relation (from entity to owner).
      */
     public function getInverseRelation(): Relation;

@@ -49,7 +49,11 @@ final class OneToManyDefinitionBuilder extends AbstractRelationDefinitionBuilder
      */
     protected function doCompile(Entity $entity): Relation
     {
-        $relation = new DefaultRelationOneToMany($entity, $this->sourcePropertyName);
+        $relation = new DefaultRelationOneToMany(
+            $entity,
+            $this->sourcePropertyName,
+            $this->targetClassName
+        );
 
         if ($key = $this->compileSourceKey()) {
             $relation->setSourceKey($key);
