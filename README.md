@@ -171,17 +171,11 @@ $phpDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
 Per default, PHP code will be generated in `\sys_get_temp_dir()` which may be
 forbidden using `open_basedir()`. You can set this folder pretty much anywhere:
 
-```
+```php
 $phpDefinitionRegistry->setGeneratedFileDirectory('/some/path/');
 ```
 
 @todo autoload files and composer for even faster loading.
-
-### Example with everything
-
-```php
-
-```
 
 ## Setup the entity hydrator
 
