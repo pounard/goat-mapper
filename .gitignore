@@ -1,7 +1,8 @@
-.buildpath
-.project
-.settings
-composer.lock
-phpunit.xml
-tests/cache
-vendor
+/.buildpath
+/.project
+/.settings
+/composer.lock
+/docs/_build
+/phpunit.xml
+/tests/cache
+/vendor

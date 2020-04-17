@@ -1,349 +1,65 @@
 # Goat Mapper
 
-Yes, because one of the best practice is "do not reinvent the wheel" I decided
-to re-invent it.
+Goat mapper is an SQL to PHP entity mapper, supporting complex object relations.
 
-This is not an ORM, not really, even thought it seriously looks like it. Note
-that one main differences between what exists and this ORM is that it's read
-only. Yes, you read it right, it is READ-ONLY, and it is by design.
+## Introduction
+
+This is not a full-fledged ORM, even though it does look like it. Note that the main
+difference between existing ORMs and this tool is that this tool is read-only.
+Yes, you read it right, it is READ-ONLY, and it is by design.
 
 It's build on top of:
 
- - `makinacorpus/goat-query` - https://github.com/pounard/goat-query
- - `makinacorpus/generated-hydrator-bundle` - https://github.com/makinacorpus/generated-hydrator-bundle
- - `ocramius/generated-hydrator` - https://github.com/Ocramius/GeneratedHydrator
- - `ocramius/proxy-manager` - https://github.com/Ocramius/ProxyManager
+ - ``makinacorpus/goat-query`` − https://github.com/pounard/goat-query
+ - ``ocramius/generated-hydrator`` − https://github.com/Ocramius/GeneratedHydrator
+ - ``ocramius/proxy-manager`` − https://github.com/Ocramius/ProxyManager
 
-It is meant to be used in Domain Driven Development code, where writes should
-be implemented as dedicated methods with semantic meaning. This tool does not
-wrap your SQL, it just help you reading your data more efficiently, and make
-lots and lots of code more natural to write.
+Let's be honest, **this is an experimental project**, if you need an ORM, use
+a mature and community-driven one such as Doctrine. This component as of now is
+not meant be as powerful or complete than the many already existing mature
+solutions.
 
-But writing data is YOUR PROBLEM, not mine. It will depend on your domain code,
-on your application specification, on your software design. I won't implement
-it for you.
+## Use case and desing approach
 
-Basically yes, it maps your SQL tables into objects, and write complex SQL
-queries to load them, and implement some solutions for the N+1 problem:
+It is meant to be used in a Domain Driven Development approach, it delegates
+writes to you. Writes shoud be implemented as dedicated methods with semantic
+meaning. This tool does not hide your SQL, it just help you read and hydrate
+your data more efficiently according to your SQL schema.
 
- - eager loading for any to one relationships, using JOIN, able to JOIN
-   indefinitely (meaning you can fetch A -> B -> C ...) in a single SQL
-   query,
+We consider that writing data will remain related to your domain, and cannot
+be written in a generic manner without creating new problems mostly related
+to data access concurency and transactions. Where most ORM fail is when you
+need to fine tune your transactions, and we don't have the pretention to
+solve that problem without knowing your schema and domain business in
+advance.
+
+## Concepts and software design
+
+Basically, it maps your SQL tables into objects using an internal and
+intermediate entity-relationship graph-based represendation, and write
+complex SQL queries traversing this graph to load your objects.
+
+It implement a few solutions for the famous N+1 problem:
+
+ - eager loading for any to one relationships, using ``JOIN``, able to
+   ``JOIN`` indefinitely (meaning you can fetch A -> B -> C ...) in a
+   single SQL query,
 
  - lazy loading of collections (not so N+1 solving) but yet nice to use
    for end users,
 
- - not yet implemented, but it will bulk lazy load collections that cannot
-   be naturally JOIN'ed in a second SQL query for a single result set,
+ - bulk lazy load collections over an entity result set that cannot be
+   naturally ``JOIN``'ed using an additional SQL query for each relation,
 
- - hydrates everything nicely using ocramius/generated-hydrator with
-   makinacorpus/generated-hydrator-bundle on top to support nested
-   object tree.
-
-Let's be honest, **this is an experimental project**, if you need an ORM,
-use Doctrine, don't come and report be any bugs, it will NEVER be as powerful
-as other complete and mature solutions are such as the Doctrine ORM.
+ - hydrates everything efficiently using ``ocramius/generated-hydrator``.
 
 # Installation
 
-Add the dependency using composer:
+Please refer to the complete documentation in the ``./docs/`` folder.
 
-```sh
-composer require makinacorpus/goat-query
-composer require makinacorpus/goat-mapper
-```
+# Implementations notes
 
-# Standalone setup
-
-## Setup a database connection
-
-You need to create a database connection to use this library. It explicitely
-uses `makinacorpus/goat-query` for writing SQL.
-
-A very easy setup would be something such as:
-
-```php
-use Goat\Driver\Configuration;
-use Goat\Driver\ExtPgSQLDriver;
-
-$driver = new ExtPgSQLDriver();
-$driver->setConfiguration(
-    Configuration::fromString(
-        "pgsql://user:password@hostname:port/database"
-    )
-);
-$runner = $driver->getRunner();
-```
-
-Of course, it is strongly advised that you read its documentation for using
-it correctly.
-
-## Setup the definition registry
-
-Definition registry is the component that does lookup for entity metadata
-and build the entity graph that will be traversed in order to build SQL
-queries.
-
-Multiple implementations are provided, we will document them in order of
-ease of use.
-
-We will consider that in all cases, you want this process to be cached,
-at least in memory, so start by creating the cache decorator and definition
-chain implementations:
-
-```php
-use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
-use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
-
-$chainDefinitionRegistry = new $definitionRegistry();
-$definitionRegistry = new CacheDefinitionRegistry($chainDefinitionRegistry);
-```
-
-Starting from there, you are ready to choose your definition registry concrete
-implementation.
-
-
-After this step, you can proceed with defining entities, or continue this section
-to see other entity definition options.
-
-When this section will be complete, you will be able to fetch entity definitions
-using:
-
-```php
-$entity = $definitionRegistry->getDefinition(\Vendor\App\Entity\Foo::class);
-```
-
-### Static entity definition registry
-
-Static entity definition registry is the easiest to use, but it requires
-you to implement a the `Goat\Mapper\Definition\Registry\StaticEntityDefinition`
-interface on all your entity classes.
-
-This interface provides a single static method that will take a single parameter
-which a builder instance, implementing the builder pattern with naturally named
-methods, easy to use:
-
-```php
-interface StaticEntityDefinition
-{
-    /**
-     * Define entity using the given builder.
-     */
-    public static function defineEntity(DefinitionBuilder $builder): void;
-}
-```
-
-In order to setup the definition registry, let's proceed continuing the
-code we started above:
-
-```php
-use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
-
-// Code from above is here...
-
-$staticDefinitionRegistry = new StaticEntityDefinitionRegistry();
-
-// Static definition registry will extensively use the proxy pattern in order
-// to lazy load entity definitions while browsing the entity graph, so it needs
-// a reference to the facade definition registry (i.e. the one doing caching):
-$staticDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
-
-// Add it to our chain.
-$chainDefinitionRegistry->add($staticDefinitionRegistry);
-```
-
-### Using PHP cache definition registry
-
-PHP cache is an extra caching layer for your entity definitions that generates
-the definitions into PHP functions, dumped into PHP files in cache, which are
-way faster than other way of defining entities.
-
-In order to use it, you must adapt the initial code:
-
-```php
-use Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry;
-use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
-use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
-
-$chainDefinitionRegistry = new ChainDefinitionRegistry();
-$phpDefinitionRegistry = new PhpDefinitionRegistry($chainDefinitionRegistry);
-$definitionRegistry = new CacheDefinitionRegistry($phpDefinitionRegistry);
-
-// Static definition registry will extensively use the proxy pattern in order
-// to lazy load entity definitions while browsing the entity graph, so it needs
-// a reference to the facade definition registry (i.e. the one doing caching):
-$phpDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
-```
-
-Per default, PHP code will be generated in `\sys_get_temp_dir()` which may be
-forbidden using `open_basedir()`. You can set this folder pretty much anywhere:
-
-```php
-$phpDefinitionRegistry->setGeneratedFileDirectory('/some/path/');
-```
-
-@todo autoload files and composer for even faster loading.
-
-## Setup the entity hydrator
-
-Of course, everything is about loading entities, so we also need an hydrator
-for those.
-
-An easy way to setup an hydrator is by using `makinacorpus/generated-hydrator-bundle`
-(even if documented as such, you don't need Symfony to make it work).
-
-Pre-requisites:
-
- - For this, we consider that you have setup a definition registry as
-   described above, we will reference it as `$definitionRegistry`.
-
-First install it:
-
-```sh
-composer require makinacorpus/generated-hydrator-bundle
-```
-
-Then set it up:
-
-```php
-use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
-use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
-use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
-
-$entityHydrator = new EntityHydratorFactory(
-    $definitionRegistry,
-    new GeneratedHydratorBundleHydratorRegistry(
-        new DefaultHydrator(
-            \sys_get_temp_dir()
-        )
-    )
-);
-```
-
-Please note that later, you will be able to use `ocramius/generated-hydrator`
-directly instead.
-
-@todo more documentation
-
-## Setup the manager
-
-Manager is the only dependency you code will need once it is setup. It knows
-the entity definition registry, and is able to build complex SQL queries for
-you.
-
-Pre-requisites:
-
- - For this, we consider that you have setup a definition registry as
-   described above, we will reference it as `$definitionRegistry`.
-
- - You need the entity hydrator as well, as saw above, we will reference
-   it as `$entityHydrator`.
-
- - You also need a working database connection as described on top of
-   this documentation, we will reference it as `$runner`.
-
-Seting it up is as easy as:
-
-```php
-use Goat\Mapper\Repository\DefaultRepositoryManager;
-
-$manager = new DefaultRepositoryManager(
-    $runner,
-    $definitionRegistry,
-    $entityHydrator
-);
-```
-
-And that's it, you are ready to go!
-
-## Defining an entity
-
-## Wrapping it up
-
-Here is a complete sample of full initialization:
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
-use Goat\Driver\Configuration;
-use Goat\Driver\ExtPgSQLDriver;
-use Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry;
-use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
-use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
-use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
-use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
-use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
-use Goat\Mapper\Repository\DefaultRepositoryManager;
-
-// Definition registry
-
-$chainDefinitionRegistry = new ChainDefinitionRegistry();
-$phpDefinitionRegistry = new PhpDefinitionRegistry($chainDefinitionRegistry);
-$definitionRegistry = new CacheDefinitionRegistry($phpDefinitionRegistry);
-
-$phpDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
-$phpDefinitionRegistry->setGeneratedFileDirectory('/some/path/');
-
-$staticDefinitionRegistry = new StaticEntityDefinitionRegistry();
-$staticDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
-$chainDefinitionRegistry->add($staticDefinitionRegistry);
-
-// Entity hydrator
-
-$entityHydrator = new EntityHydratorFactory(
-    $definitionRegistry,
-    new GeneratedHydratorBundleHydratorRegistry(
-        new DefaultHydrator(
-            \sys_get_temp_dir()
-        )
-    )
-);
-
-// Database connection
-
-$driver = new ExtPgSQLDriver();
-$driver->setConfiguration(
-    Configuration::fromString(
-        "pgsql://user:password@hostname:port/database"
-    )
-);
-$runner = $driver->getRunner();
-
-// Entity manager
-
-$manager = new DefaultRepositoryManager(
-    $runner,
-    $definitionRegistry,
-    $entityHydrator
-);
-```
-
-Of course, adapt to your needs or your framework.
-
-### Using the static entity definition interface
-
-@todo
-
-### Using an array
-
-@todo
-
-### Using YAML
-
-@todo
-
-## Usage
-
-@todo
-
-# Symfony setup
-
-@todo I need to write this.
-
-# Entity graph
+## Entity graph
 
 Entities and relations are represented using a graph, which can be browsed
 in all directions. Every relation may have its inverse counter-part within
@@ -354,6 +70,10 @@ Query builder uses that graph to build SQL queries.
 In order to browse this graph, you must start with a specific entity class
 as a starting point. While browsing it, each time you reach a new entity node
 it is being lazy loaded, the graph is never entirely loaded in memory.
+
+## Query graph
+
+@todo
 
 # Roadmap
 
@@ -490,8 +210,6 @@ Backlog, for later or when I'm bored:
  - [ ] implement a PHP dumper that creates classes that implement graph and
    directly return values instead of hydrating default implementations, I'm not
    really sure it worthes it, so keep this for much much later,
-
- - [ ] implement xml reader ? why exactly ?
 
  - [ ] handle null references when lazy loading any to one relationship,
    as of today, a virtual proxy is used, but it'll crash if loaded reference
