@@ -5,7 +5,7 @@ Goat Mapper
    :maxdepth: 2
    :caption: Contents:
 
-   install/install
+   install/index
    usage/index
    hydrator/index
 

@@ -119,14 +119,6 @@ Priority 1, we need it before being able to use it:
  - [x] with mapping tables builder, ensure mapping keys are compatible with
    their counterpart in source and target tables,
 
- - [ ] untangle the relation fetcher interface and implementation mess,
-
- - [ ] find a proper and more direct way to collect entities identifiers,
-
- - [ ] implement the N+1 bulk lazy load solution for large result sets with
-   any to many collection - note that this is implemented, at least in
-   interfaces, but concrete implementation does not bulk load,
-
  - [x] implement functionnal tests with a real SQL backend behind (right now
    only SQL generation is tested),
 
@@ -137,7 +129,7 @@ Priority 1, we need it before being able to use it:
  - [x] make that PHP cache not so stupid and lazy load repository definitions
    on demand,
 
- - [ ] industrialise the PHP cache writer, decouple function name inflector,
+ - [x] industrialise the PHP cache writer, decouple function name inflector,
    file name locator, and file loader,
 
  - [ ] make the rewindable collections much smarter (create a new iterator impl
@@ -160,6 +152,14 @@ Priority 1, we need it before being able to use it:
  - [ ] write poor's man documentation for basic use cases.
 
 Priority 2, industrialisation:
+
+ - [ ] untangle the relation fetcher interface and implementation mess,
+
+ - [ ] find a proper and more direct way to collect entities identifiers,
+
+ - [ ] implement the N+1 bulk lazy load solution for large result sets with
+   any to many collection - note that this is implemented, at least in
+   interfaces, but concrete implementation does not bulk load,
 
  - [ ] write much more functionnal tests,
 

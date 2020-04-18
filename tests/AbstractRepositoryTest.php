@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
+use Goat\Mapper\Cache\GeneratorConfiguration;
 use Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry;
+use Goat\Mapper\Cache\GeneratorStrategy\EvaluatingGeneratorStrategy;
 use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
@@ -164,6 +166,16 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         );
     }
 
+    private function createGeneratorConfiguration(): GeneratorConfiguration
+    {
+        $configuration = new GeneratorConfiguration();
+        $configuration->setGeneratorStrategy(
+            new EvaluatingGeneratorStrategy()
+        );
+
+        return $configuration;
+    }
+
     private function createDefinitionRegistry(): DefinitionRegistry
     {
         /*
@@ -184,7 +196,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
             )
         );
 
-        $phpCacheDecorator->setGeneratedFileDirectory(__DIR__ . '/cache');
+        $phpCacheDecorator->setGeneratorConfiguration($this->createGeneratorConfiguration());
         $phpCacheDecorator->setParentDefinitionRegistry($cacheDefinitionRegistry);
         $staticEntityDefinitionRegistry->setParentDefinitionRegistry($cacheDefinitionRegistry);
 
