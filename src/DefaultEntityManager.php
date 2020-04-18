@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Repository;
+namespace Goat\Mapper;
 
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
+use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Runner\Runner;
 
-class DefaultRepositoryManager implements RepositoryManager
+class DefaultEntityManager implements EntityManager
 {
     private Runner $runner;
     private DefinitionRegistry $definitionRegistry;
-    private array $repositories = [];
     private EntityHydratorFactory $entityHydratorFactory;
     private ?QueryBuilderFactory $queryBuilderFactory;
 
@@ -38,16 +38,6 @@ class DefaultRepositoryManager implements RepositoryManager
     /**
      * {@inheritdoc}
      */
-    public function getRepository(string $className): Repository
-    {
-        return $this->repositories[$className] ?? (
-            $this->repositories[$className] = $this->createRepository($className)
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getDefinitionRegistry(): DefinitionRegistry
     {
         return $this->definitionRegistry;
@@ -63,13 +53,18 @@ class DefaultRepositoryManager implements RepositoryManager
         );
     }
 
-    private function createRepository(string $className): Repository
+    /**
+     * {@inheritdoc}
+     */
+    public function query(string $className, ?string $primaryTableAlias = null): EntityQuery
     {
-        // @todo Make it pluggage for custom implementation.
-        return new DefaultRepository(
-            $this->definitionRegistry->getDefinition($className),
-            $this
-        );
+        return $this
+            ->getQueryBuilderFactory()
+            ->query(
+                $className,
+                $primaryTableAlias
+            )
+        ;
     }
 
     private function createQueryBuilderFactory(): QueryBuilderFactory

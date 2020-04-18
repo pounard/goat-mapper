@@ -26,6 +26,7 @@ class PhpDefinitionRegistry extends WithParentDefinitionRegistry
 
     /**
      * @deprecated
+     * @codeCoverageIgnore
      */
     public function setGeneratedFileDirectory(string $generatedFileDirectory): void
     {

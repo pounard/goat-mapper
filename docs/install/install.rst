@@ -281,9 +281,9 @@ Seting it up is as easy as:
 
    <?php
 
-   use Goat\Mapper\Repository\DefaultRepositoryManager;
+   use Goat\Mapper\DefaultEntityManager;
 
-   $manager = new DefaultRepositoryManager(
+   $manager = new DefaultEntityManager(
        $runner,
        $definitionRegistry,
        $entityHydrator
@@ -303,13 +303,13 @@ Here is a complete sample of full initialization:
    use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
    use Goat\Driver\Configuration;
    use Goat\Driver\ExtPgSQLDriver;
+   use Goat\Mapper\DefaultEntityManager;
    use Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry;
    use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
    use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
    use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
    use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
    use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
-   use Goat\Mapper\Repository\DefaultRepositoryManager;
 
    // Definition registry
 
@@ -347,7 +347,7 @@ Here is a complete sample of full initialization:
 
    // Entity manager
 
-   $manager = new DefaultRepositoryManager(
+   $manager = new DefaultEntityManager(
        $runner,
        $definitionRegistry,
        $entityHydrator

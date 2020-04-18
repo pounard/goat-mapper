@@ -2,30 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Goat\Mapper\Repository;
+namespace Goat\Mapper;
 
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
 use Goat\Runner\Runner;
+use Goat\Mapper\Query\Entity\EntityQuery;
 
-interface RepositoryManager
+interface EntityManager
 {
     /**
      * Get SQL query runner
      */
     public function getRunner(): Runner;
-
-    /**
-     * Fetch repository for class.
-     *
-     * @param string $name
-     *   Target class name or repository alias, identifier or class name. If
-     *   more than one repository matches the class name, an exception will
-     *   be thrown.
-     * @todo Give the possibility to mark a repository as being "primary"
-     *   for a certain class name.
-     */
-    public function getRepository(string $className): Repository;
 
     /**
      * Get definition registry.
@@ -36,4 +25,11 @@ interface RepositoryManager
      * Create an arbitrary entity query builder.
      */
     public function getQueryBuilderFactory(): QueryBuilderFactory;
+
+    /**
+     * Create a query builder for entity.
+     *
+     * Alias to $this->getQueryBuilderFactory()->query($className);
+     */
+    public function query(string $className, ?string $primaryTableAlias = null): EntityQuery;
 }

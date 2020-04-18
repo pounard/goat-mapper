@@ -6,20 +6,17 @@ namespace Goat\Mapper\Tests\Unit\Query\Entity\EntityQuery;
 
 use Goat\Mapper\Tests\AbstractRepositoryTest;
 use Goat\Mapper\Tests\Mock\WithoutRelation;
-use Goat\Query\Expression;
 use Goat\Query\ExpressionRaw;
-use Goat\Query\SelectQuery;
 use Ramsey\Uuid\Uuid;
 
 final class MatchesTest extends AbstractRepositoryTest
 {
     public function testConditionWithExistingColumnInKey(): void
     {
-        $manager = $this->createRepositoryManager();
-        $repository = $manager->getRepository(WithoutRelation::class);
+        $manager = $this->createEntityManager();
 
-        $query = $repository
-            ->query()
+        $query = $manager
+            ->query(WithoutRelation::class)
             ->matches('id', Uuid::uuid4())
             ->build()
         ;
@@ -39,11 +36,10 @@ SQL,
 
     public function testConditionWithExistingColumn(): void
     {
-        $manager = $this->createRepositoryManager();
-        $repository = $manager->getRepository(WithoutRelation::class);
+        $manager = $this->createEntityManager();
 
-        $query = $repository
-            ->query()
+        $query = $manager
+            ->query(WithoutRelation::class)
             ->matches('value', 'foo')
             ->build()
         ;
@@ -63,11 +59,10 @@ SQL,
 
     public function testConditionWithNonExistingColumn(): void
     {
-        $manager = $this->createRepositoryManager();
-        $repository = $manager->getRepository(WithoutRelation::class);
+        $manager = $this->createEntityManager();
 
-        $query = $repository
-            ->query()
+        $query = $manager
+            ->query(WithoutRelation::class)
             ->matches('some_other', 'foo')
             ->build()
         ;
@@ -87,18 +82,13 @@ SQL,
 
     public function testConditionWithExpression(): void
     {
-        self::markTestSkipped(\sprintf(
-            "%s::condition() must be fixed to accept %s instances",
-            SelectQuery::class,
-            Expression::class
-        ));
+        self::markTestIncomplete("matches() method signature is too strict.");
 
-        $manager = $this->createRepositoryManager();
-        $repository = $manager->getRepository(WithoutRelation::class);
+        $manager = $this->createEntityManager();
 
-        $query = $repository
-            ->fetch()
-            ->condition(ExpressionRaw::create("bouh is true"))
+        $query =  $manager
+            ->query(WithoutRelation::class)
+            ->matches('bouh', ExpressionRaw::create("bouh is true"))
             ->build()
         ;
 
@@ -117,11 +107,10 @@ SQL,
 
     public function testWithoutRelations(): void
     {
-        $manager = $this->createRepositoryManager();
-        $repository = $manager->getRepository(WithoutRelation::class);
+        $manager = $this->createEntityManager();
 
-        $query = $repository
-            ->query()
+        $query = $manager
+            ->query(WithoutRelation::class)
             ->build()
         ;
 

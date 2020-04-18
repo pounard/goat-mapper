@@ -6,6 +6,8 @@ namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
 use GeneratedHydrator\Bridge\Symfony\Utils\Psr4Factory;
+use Goat\Mapper\DefaultEntityManager;
+use Goat\Mapper\EntityManager;
 use Goat\Mapper\Cache\GeneratorConfiguration;
 use Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry;
 use Goat\Mapper\Cache\GeneratorStrategy\EvaluatingGeneratorStrategy;
@@ -17,8 +19,6 @@ use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
 use Goat\Mapper\Hydration\HydratorRegistry\HydratorRegistry;
 use Goat\Mapper\Hydration\Proxy\ProxyFactory;
-use Goat\Mapper\Repository\DefaultRepositoryManager;
-use Goat\Mapper\Repository\RepositoryManager;
 use Goat\Mapper\Tests\Mock\Address;
 use Goat\Mapper\Tests\Mock\Advisor;
 use Goat\Mapper\Tests\Mock\Client;
@@ -110,9 +110,9 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         );
     }
 
-    final protected function createRepositoryManager(?Runner $runner = null): RepositoryManager
+    final protected function createEntityManager(?Runner $runner = null): EntityManager
     {
-        return new DefaultRepositoryManager(
+        return new DefaultEntityManager(
             $runner ?? new NullRunner(),
             $this->createDefinitionRegistry(),
             $this->createEntityHydratorFactory()

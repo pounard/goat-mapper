@@ -124,11 +124,10 @@ final class QueryToHydrationTest extends AbstractRepositoryTest
             $this->injectTestData($runner, $schema);
         });
 
-        $manager = $this->createRepositoryManager($runner);
+        $manager = $this->createEntityManager($runner);
 
-        $clientRepository = $manager->getRepository(Client::class);
-        $entity = $clientRepository
-            ->query()
+        $entity = $manager
+            ->query(Client::class)
             ->eager('addresses')
             ->matches('id', $this->clientId)
             ->execute()
@@ -149,11 +148,10 @@ final class QueryToHydrationTest extends AbstractRepositoryTest
             $this->injectTestData($runner, $schema);
         });
 
-        $manager = $this->createRepositoryManager($runner);
+        $manager = $this->createEntityManager($runner);
 
-        $clientRepository = $manager->getRepository(Client::class);
-        $entity = $clientRepository
-            ->query()
+        $entity = $manager
+            ->query(Client::class)
             ->eager('addresses')
             ->matches('id', $this->clientId)
             ->execute()
@@ -174,11 +172,10 @@ final class QueryToHydrationTest extends AbstractRepositoryTest
             $this->injectTestData($runner, $schema);
         });
 
-        $manager = $this->createRepositoryManager($runner);
+        $manager = $this->createEntityManager($runner);
 
-        $clientRepository = $manager->getRepository(Client::class);
-        $entities = $clientRepository
-            ->query()
+        $entities = $manager
+            ->query(Client::class)
             ->build()
             ->orderBy('firstname')
             ->execute()

@@ -16,7 +16,7 @@ final class PhpDumperTest extends AbstractRepositoryTest
         $writer = new MemoryWriter();
         $dumper = new PhpDumper();
 
-        $manager = $this->createRepositoryManager();
+        $manager = $this->createEntityManager();
         $definitionRegistry = $manager->getDefinitionRegistry();
 
         $dumper->dump(

@@ -57,6 +57,33 @@ It implement a few solutions for the famous N+1 problem:
 
 Please refer to the complete documentation in the ``./docs/`` folder.
 
+# Build the docs
+
+Documentation uses Sphinx. For building it you need:
+
+ - python,
+ - pip,
+ - virtualenv.
+
+First time you want to install it:
+
+```sh
+pip install --user virtualenv
+mkdir ~/venvs
+virtualenv ~/venvs/sphinx
+. ~/venvs/sphinx/bin/activate
+pip install sphinx
+pip install sphinx_rtd_theme
+```
+
+Then you can (re)generate it:
+
+```sh
+. ~/venvs/sphinx/bin/activate
+cd docs/
+make html
+```
+
 # Implementations notes
 
 ## Entity graph
@@ -106,8 +133,11 @@ Priority 0, we need it ASAP:
  - [x] specialize the relation definition object to make it more obvious on
    how to use it,
 
- - [ ] empty test cache folder on setUp() but keep data on teardown, it might
-   be usseful for debug.
+ - [x] make tests use generated code eval loader,
+
+ - [ ] write unit and functionnal tests for other loaders,
+
+ - [ ] write unit tests for definition registries,
 
 Priority 1, we need it before being able to use it:
 
@@ -132,26 +162,48 @@ Priority 1, we need it before being able to use it:
  - [x] industrialise the PHP cache writer, decouple function name inflector,
    file name locator, and file loader,
 
- - [ ] make the rewindable collections much smarter (create a new iterator impl
-   that populate an internal array over first iteration maybe, to keep them
-   fully lazy) - now that result iterators from goat are rewindable, not sure
-   we need to keep a rewindable collection,
+ - [x] rename repository manager to something else,
+
+ - [x] rename things in entity builder for having a more natural builder
+   pattern semantics when using the manager directly,
+
+ - [ ] write a basic symfony bundle,
+
+ - [ ] write poor's man documentation for basic use cases.
+
+Priority 2, rework collections
+
+ - [ ] implement \Iterator instead of \IteratorAggregate
+
+ - [ ] make rewindable collections smarter (use the same incremental build as
+   the goat-query result iterator),
+
+ - [ ] make a specific implementation for goat-query result iterator,
+
+ - [ ] make empty collection being a separate implementation,
+
+ - [ ] unit test all the things!
+
+Priority 3, repositories and customization
+
+ - [ ] create a repository manager which only handles repositories, but nothing
+   else,
+
+ - [ ] allow custom repositories to be used instead of the default one,
+
+ - [ ] add custom repository logic to symfony bundle,
+
+ - [ ] allow custom code to plug into entity hydration,
+
+ - [ ] events ? where ? when ? which are the use cases ?
+
+Priority 4, industrialisation:
 
  - [ ] identify relations using a predicitable name, and a direction, so that
    all relations and their inverse relations can be identified,
 
  - [ ] create various compilation passes after builder for fixing data and
    materializing reverse relations.
-
- - [ ] allow custom repositories to be used instead of the default one,
-
- - [ ] write a basic symfony bundle,
-
- - [ ] add custom repository logic to symfony bundle,
-
- - [ ] write poor's man documentation for basic use cases.
-
-Priority 2, industrialisation:
 
  - [ ] untangle the relation fetcher interface and implementation mess,
 
@@ -170,15 +222,6 @@ Priority 2, industrialisation:
    for JOINs statements,
 
  - [ ] write specific SQL-comparison tests for entity columns SELECTion,
-
- - [ ] implement SQL schema introspector in goat-query,
-
- - [ ] implement SQL builder introspector in goat-query,
-
- - [ ] SQL schema introspector that reads your schema and reconcile with exising
-   entity classes, to auto-generated definitions,
-
- - [ ] SQL schema introspector that reads your schema and generate PHP entities,
 
  - [ ] implement to many conditions same as upper, but using EXISTS query,
 
@@ -199,6 +242,20 @@ Priority 2, industrialisation:
  - [ ] stabilise the symfony bundle and make it highly customizable,
 
  - [ ] documentation.
+
+Priority 4, industrialisation necessitating third party upgrades
+
+ - [ ] implement class and interface compatible for transparently replacing
+   previous makinacorpus/goat implementations,
+
+ - [ ] implement SQL schema introspector in goat-query,
+
+ - [ ] implement SQL schema introspected-based builder,
+
+ - [ ] SQL schema introspector that reads your schema and reconcile with exising
+   entity classes, to auto-generated definitions,
+
+ - [ ] SQL schema introspector that reads your schema and generate PHP entities.
 
 Backlog, for later or when I'm bored:
 

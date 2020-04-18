@@ -16,7 +16,7 @@ final class RelationQueryBuilderTest extends AbstractRepositoryTest
 {
     public function testKeyWithIdentifierMismatchRaiseError(): void
     {
-        $manager = $this->createRepositoryManager();
+        $manager = $this->createEntityManager();
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
@@ -33,7 +33,7 @@ final class RelationQueryBuilderTest extends AbstractRepositoryTest
 
     public function testAnyToOne(): void
     {
-        $manager = $this->createRepositoryManager();
+        $manager = $this->createEntityManager();
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
@@ -68,7 +68,7 @@ SQL
 
     public function testOneToMany(): void
     {
-        $manager = $this->createRepositoryManager();
+        $manager = $this->createEntityManager();
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
@@ -101,7 +101,7 @@ SQL
 
     public function testOneToManyWithSourceKeyNotPrimaryKey(): void
     {
-        $manager = $this->createRepositoryManager();
+        $manager = $this->createEntityManager();
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
@@ -148,7 +148,7 @@ SQL
 
     public function testManyToManyWithNonPrimaryKeyInTarget(): void
     {
-        $manager = $this->createRepositoryManager();
+        $manager = $this->createEntityManager();
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(
@@ -183,7 +183,7 @@ SQL
 
     public function testManyToManyWithNonPrimaryKeyInSource(): void
     {
-        $manager = $this->createRepositoryManager();
+        $manager = $this->createEntityManager();
         $query = $manager
             ->getQueryBuilderFactory()
             ->related(

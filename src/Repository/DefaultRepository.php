@@ -4,81 +4,18 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Repository;
 
-use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Error\EntityDoesNotExistError;
-use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Entity\QueryBuilderFactory;
-use Goat\Runner\Runner;
 
 /**
  * @var Repository<T>
  */
-class DefaultRepository implements Repository
+class DefaultRepository extends AbstractRepository
 {
-    private Entity $definition;
-    private RepositoryManager $manager;
-    private string $className;
-
-    public function __construct(Entity $definition, RepositoryManager $manager)
-    {
-        $this->className = $definition->getClassName();
-        $this->definition = $definition;
-        $this->manager = $manager;
-    }
-
-    protected final function getRepositoryManager(): RepositoryManager
-    {
-        return $this->manager;
-    }
-
     /**
-     * {@inheritdoc}
+     * Find one entity.
      */
-    public function getRunner(): Runner
-    {
-        return $this->manager->getRunner();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public final function getDefinition(): Entity
-    {
-        return $this->definition;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public final function getRelatedRepository(string $relation): Repository
-    {
-        return $this->manager->getRepository(
-            $this
-                ->definition
-                ->getRelation($relation)
-                ->getClassName()
-        );
-    }
-
-    /**
-     * Create select query builder.
-     */
-    public function query(?string $primaryTableAlias = null): EntityQuery
-    {
-        return $this
-            ->manager
-            ->getQueryBuilderFactory()
-            ->query(
-                $this->className,
-                $primaryTableAlias
-            )
-        ;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findOne($id)
+    public function findOne($id, bool $raiseErrorOnMissing = true)
     {
         $query = $this->fetch();
 
@@ -94,10 +31,14 @@ class DefaultRepository implements Repository
 
         $entity = $query->execute()->fetch();
 
-        if (!$entity) {
+        if ($entity) {
+            return $entity;
+        }
+
+        if ($raiseErrorOnMissing) {
             throw new EntityDoesNotExistError();
         }
 
-        return $entity;
+        return null;
     }
 }

@@ -11,11 +11,10 @@ final class AnyToOneEagerTest extends AbstractRepositoryTest
 {
     public function testEagerAnyToOne(): void
     {
-        $manager = $this->createRepositoryManager();
-        $repository = $manager->getRepository(WithManyToOneRelation::class);
+        $manager = $this->createEntityManager();
 
-        $query = $repository
-            ->query('foo')
+        $query = $manager
+            ->query(WithManyToOneRelation::class, 'foo')
             ->eager('relatedEntity')
             ->build()
         ;

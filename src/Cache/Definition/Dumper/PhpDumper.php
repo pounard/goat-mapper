@@ -57,7 +57,9 @@ final class PhpDumper
         if ($property instanceof Value) {
             $this->dumpValue($property, $writer);
         } else {
+            // @codeCoverageIgnoreStart
             throw new ConfigurationError(\sprintf("Cannot dump entity property with class '%s'", \get_class($property)));
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -80,7 +82,9 @@ final class PhpDumper
         } else if ($relation instanceof RelationManyToMany) {
             $this->dumpRelationManyToMany($relation, $writer);
         } else {
+            // @codeCoverageIgnoreStart
             throw new ConfigurationError(\sprintf("Cannot dump entity relation with class '%s'", \get_class($relation)));
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -234,11 +238,6 @@ final class PhpDumper
     private function exportBool($value): string
     {
         return $value ? 'true' : 'false';
-    }
-
-    private function exportArray(array $array): string
-    {
-        return \var_export($array, true);
     }
 
     private function exportString(?string $string): ?string
