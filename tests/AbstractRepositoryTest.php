@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Mapper\Tests;
 
 use GeneratedHydrator\Bridge\Symfony\DefaultHydrator;
+use GeneratedHydrator\Bridge\Symfony\Utils\Psr4Factory;
 use Goat\Mapper\Cache\GeneratorConfiguration;
 use Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry;
 use Goat\Mapper\Cache\GeneratorStrategy\EvaluatingGeneratorStrategy;
@@ -138,11 +139,23 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 
     private function createHydratorRegistry(): HydratorRegistry
     {
-        return new GeneratedHydratorBundleHydratorRegistry(
-            new DefaultHydrator(
-                \sys_get_temp_dir()
-            )
+        $cacheDirectory = __DIR__;
+        if (!\is_dir($cacheDirectory)) {
+            @\mkdir($cacheDirectory);
+        }
+
+        $hydrator = new DefaultHydrator(
+            $cacheDirectory,
+            [],
+            DefaultHydrator::MODE_PSR4
         );
+
+        $hydrator->setPsr4Factory(new Psr4Factory(
+            $cacheDirectory,
+            __NAMESPACE__
+        ));
+
+        return new GeneratedHydratorBundleHydratorRegistry($hydrator);
     }
 
     private function createLazyLoadingValueHolderFactory(): LazyLoadingValueHolderFactory
