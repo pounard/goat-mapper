@@ -8,11 +8,13 @@ use Goat\Mapper\Cache\Inflector\DefaultClassNameInflector;
 
 class DefaultFileLocator implements FileLocator
 {
-    protected string $generatedClassDirectory;
+    private string $generatedClassDirectory;
+    private string $namespacePrefix;
 
-    public function __construct(string $generatedClassDirectory)
+    public function __construct(string $generatedClassDirectory, ?string $namespacePrefix = null)
     {
         $this->generatedClassDirectory = $generatedClassDirectory;
+        $this->namespacePrefix = $namespacePrefix ?? DefaultClassNameInflector::DEFAULT_NAMESPACE;
     }
 
     /**
@@ -20,8 +22,7 @@ class DefaultFileLocator implements FileLocator
      */
     public function getFileName(string $generatedClassName): string
     {
-        // @todo make it configurable
-        return $this->doGetFileName(DefaultClassNameInflector::DEFAULT_NAMESPACE, $generatedClassName);
+        return $this->doGetFileName($this->namespacePrefix, $generatedClassName);
     }
 
     private function doGetFileName(string $namespacePrefix, string $generatedClassName): string

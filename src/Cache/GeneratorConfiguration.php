@@ -6,10 +6,10 @@ namespace Goat\Mapper\Cache;
 
 use Goat\Mapper\Cache\FileLocator\DefaultFileLocator;
 use Goat\Mapper\Cache\FileLocator\FileLocator;
+use Goat\Mapper\Cache\GeneratorStrategy\FileWriterGeneratorStrategy;
 use Goat\Mapper\Cache\GeneratorStrategy\GeneratorStrategy;
 use Goat\Mapper\Cache\Inflector\ClassNameInflector;
 use Goat\Mapper\Cache\Inflector\DefaultClassNameInflector;
-use Goat\Mapper\Cache\GeneratorStrategy\FileWriterGeneratorStrategy;
 
 class GeneratorConfiguration
 {
@@ -30,11 +30,21 @@ class GeneratorConfiguration
         );
     }
 
+    public function setClassNameInflector(ClassNameInflector $classNameInflector): void
+    {
+        $this->classNameInflector = $classNameInflector;
+    }
+
     public function getClassNameInflector(): ClassNameInflector
     {
         return $this->classNameInflector ?? (
             $this->classNameInflector = new DefaultClassNameInflector()
         );
+    }
+
+    public function setFileLocator(FileLocator $fileLocator): void
+    {
+        $this->fileLocator = $fileLocator;
     }
 
     public function getFileLocator(): FileLocator

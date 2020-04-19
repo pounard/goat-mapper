@@ -8,34 +8,34 @@ final class DefaultClassNameInflector implements ClassNameInflector
 {
     const DEFAULT_NAMESPACE = 'Goat\\Mapper\\Generated\\Definition';
 
+    private string $namespacePrefix;
+    private ?string $namespaceInfix = null;
+
+    public function __construct(?string $namespacePrefix = null, ?string $namespaceInfix = 'Generated\\Definition')
+    {
+        $this->namespacePrefix = $namespacePrefix ?? self::DEFAULT_NAMESPACE;
+        $this->namespaceInfix = $namespaceInfix ? \trim($namespaceInfix, '\\') : null;
+    }
+
     /**
      * {@inheritDoc}
      */
-    public function getGeneratedClassName(string $className, array $options = []) : string
+    public function getGeneratedClassName(string $className): string
     {
-        return self::DEFAULT_NAMESPACE . '\\' .$className;
-    }
+        $namespacePrefix = \trim($this->namespacePrefix, '\\') . '\\';
+        $generatedClassName = \trim($className, '\\');
 
-    /**
-     * Converts the given parameters into a likely-unique hash
-     *
-     * @param mixed[] $parameters
-     *
-    public function hashParameters(array $parameters) : string
-    {
-        return md5(serialize($parameters));
-    }
-     */
+        $length = \strlen($namespacePrefix);
+        if ($namespacePrefix === \substr($generatedClassName, 0, $length)) {
+            $classNameSuffix = \substr($generatedClassName, $length);
+        } else {
+            $classNameSuffix = $generatedClassName;
+        }
 
-    /**
-     * Converts the given parameters into a set of characters that are safe to
-     * use in a class name
-     *
-     * @param mixed[] $parameters
-     *
-    public function encodeParameters(array $parameters) : string
-    {
-        return base64_encode(serialize($parameters));
+        if ($this->namespaceInfix) {
+            return $namespacePrefix . $this->namespaceInfix . '\\' . $classNameSuffix;
+        }
+
+        return $namespacePrefix . $classNameSuffix;
     }
-     */
 }

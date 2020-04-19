@@ -9,5 +9,5 @@ interface ClassNameInflector
     /**
      * Compute generated class name.
      */
-    public function getGeneratedClassName(string $className, array $options = []) : string;
+    public function getGeneratedClassName(string $className): string;
 }

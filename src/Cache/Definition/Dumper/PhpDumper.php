@@ -16,8 +16,8 @@ use Goat\Mapper\Definition\Graph\RelationAnyToOne;
 use Goat\Mapper\Definition\Graph\RelationManyToMany;
 use Goat\Mapper\Definition\Graph\RelationOneToMany;
 use Goat\Mapper\Definition\Graph\Value;
-use Goat\Mapper\Error\ConfigurationError;
 use Goat\Mapper\Definition\Graph\Impl\EntityProxy;
+use Goat\Mapper\Error\ConfigurationError;
 
 final class PhpDumper
 {

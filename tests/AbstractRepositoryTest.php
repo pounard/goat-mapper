@@ -10,7 +10,9 @@ use Goat\Mapper\DefaultEntityManager;
 use Goat\Mapper\EntityManager;
 use Goat\Mapper\Cache\GeneratorConfiguration;
 use Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry;
+use Goat\Mapper\Cache\FileLocator\DefaultFileLocator;
 use Goat\Mapper\Cache\GeneratorStrategy\EvaluatingGeneratorStrategy;
+use Goat\Mapper\Cache\Inflector\DefaultClassNameInflector;
 use Goat\Mapper\Definition\Registry\CacheDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\ChainDefinitionRegistry;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
@@ -38,8 +40,8 @@ use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Goat\Runner\Testing\NullRunner;
 use ProxyManager\Configuration as ProxyManagerConfiguration;
 use ProxyManager\Factory\LazyLoadingValueHolderFactory;
-use ProxyManager\FileLocator\FileLocator;
-use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy;
+use ProxyManager\FileLocator\FileLocator as ProxyFileLocator;
+use ProxyManager\GeneratorStrategy\FileWriterGeneratorStrategy as ProxyFileWriterGeneratorStrategy;
 
 abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 {
@@ -162,8 +164,8 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     {
         $configuration = new ProxyManagerConfiguration();
         $configuration->setGeneratorStrategy(
-            new FileWriterGeneratorStrategy(
-                new FileLocator(
+            new ProxyFileWriterGeneratorStrategy(
+                new ProxyFileLocator(
                     $configuration->getProxiesTargetDir()
                 )
             )
@@ -181,10 +183,24 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 
     private function createGeneratorConfiguration(): GeneratorConfiguration
     {
+        $fileLocator = new DefaultFileLocator(__DIR__, __NAMESPACE__);
+
         $configuration = new GeneratorConfiguration();
+        $configuration->setGeneratedClassDirectory(__DIR__);
+        $configuration->setClassNameInflector(
+            new DefaultClassNameInflector(__NAMESPACE__)
+        );
+        $configuration->setFileLocator($fileLocator);
+
         $configuration->setGeneratorStrategy(
             new EvaluatingGeneratorStrategy()
         );
+
+        /*
+        $configuration->setGeneratorStrategy(
+            new FileWriterGeneratorStrategy($fileLocator)
+        );
+         */
 
         return $configuration;
     }
