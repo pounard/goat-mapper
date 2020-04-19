@@ -167,6 +167,11 @@ Priority 1, we need it before being able to use it:
  - [x] rename things in entity builder for having a more natural builder
    pattern semantics when using the manager directly,
 
+ - [ ] set any to one n+1 relations for being join'ed per default,
+
+ - [ ] allow any to one n+1 relations to be marked by implementation to not be
+   join'ed per default,
+
  - [ ] write a basic symfony bundle,
 
  - [ ] write poor's man documentation for basic use cases.
@@ -180,7 +185,7 @@ Priority 2, rework collections
 
  - [ ] make a specific implementation for goat-query result iterator,
 
- - [ ] make empty collection being a separate implementation,
+ - [x] make empty collection being a separate implementation,
 
  - [ ] unit test all the things!
 

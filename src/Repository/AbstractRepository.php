@@ -18,10 +18,10 @@ abstract class AbstractRepository implements Repository
     private EntityManager $manager;
     private string $className;
 
-    public function __construct(Entity $definition, EntityManager $manager)
+    public function __construct(string $className, EntityManager $manager)
     {
-        $this->className = $definition->getClassName();
-        $this->definition = $definition;
+        $this->definition = $manager->getDefinitionRegistry()->getDefinition($className);
+        $this->className = $className;
         $this->manager = $manager;
     }
 

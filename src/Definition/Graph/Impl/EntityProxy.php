@@ -117,6 +117,14 @@ final class EntityProxy implements Entity
     /**
      * {@inheritdoc}
      */
+    public function hasRelations(): bool
+    {
+        return $this->getDecoratedEntity()->hasRelations();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getRelation(string $propertyOrClassName): Relation
     {
         return $this->getDecoratedEntity()->getRelation($propertyOrClassName);

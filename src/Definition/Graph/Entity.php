@@ -35,6 +35,11 @@ interface Entity extends Node
     public function getPrimaryKey(): ?PrimaryKey;
 
     /**
+     * Does this entity has relations?
+     */
+    public function hasRelations(): bool;
+
+    /**
      * Get a single relation for given property or class name.
      *
      * @return array<string,Relation>

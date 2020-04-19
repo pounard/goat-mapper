@@ -17,6 +17,7 @@ final class DefaultEntityHydrator implements EntityHydrator
     private ?PrimaryKey $primaryKey;
     private ProxyFactory $proxyFactory;
     private Entity $definition;
+    private bool $hasRelations = true;
 
     public function __construct(
         callable $previous,
@@ -29,6 +30,7 @@ final class DefaultEntityHydrator implements EntityHydrator
         $this->previous = $previous;
         $this->primaryKey = $definition->getPrimaryKey();
         $this->proxyFactory = $proxyFactory;
+        $this->hasRelations = $definition->hasRelations();
     }
 
     private function hydrateRelations(array $values, RelationFetcher $fetcher): array
@@ -94,6 +96,16 @@ final class DefaultEntityHydrator implements EntityHydrator
 
     public function hydrate(array $values, RelationFetcher $fetcher)
     {
-        return \call_user_func($this->previous, $this->hydrateRelations($values, $fetcher));
+        if (!$this->hasRelations) {
+            return \call_user_func($this->previous, $values);
+        }
+
+        return \call_user_func(
+            $this->previous,
+            $this->hydrateRelations(
+                $values,
+                $fetcher
+            )
+        );
     }
 }

@@ -107,6 +107,14 @@ final class DefaultEntity extends AbstractNode implements Entity
     /**
      * {@inheritdoc}
      */
+    public function hasRelations(): bool
+    {
+        return !empty($this->relations);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getRelation(string $propertyOrClassName): Relation
     {
         return $this->relations[$propertyOrClassName] ?? $this->findRelationWithClass($propertyOrClassName);
