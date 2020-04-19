@@ -167,7 +167,7 @@ Priority 1, we need it before being able to use it:
  - [x] rename things in entity builder for having a more natural builder
    pattern semantics when using the manager directly,
 
- - [ ] set any to one n+1 relations for being join'ed per default,
+ - [x] set any to one n+1 relations for being join'ed per default,
 
  - [ ] allow any to one n+1 relations to be marked by implementation to not be
    join'ed per default,

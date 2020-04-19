@@ -11,6 +11,8 @@ use Goat\Mapper\Definition\Graph\RelationAnyToOne;
 
 final class DefaultRelationAnyToOne extends AbstractRelation implements RelationAnyToOne
 {
+    private bool $doEagerLoad = true;
+
     public function __construct(Entity $entity, string $name, string $className, ?int $mode = Relation::MODE_MANY_TO_ONE)
     {
         if (Relation::MODE_MANY_TO_ONE !== $mode && Relation::MODE_ONE_TO_ONE !== $mode) {
@@ -18,6 +20,22 @@ final class DefaultRelationAnyToOne extends AbstractRelation implements Relation
         }
 
         parent::__construct($entity, $name, $className, $mode);
+    }
+
+    /**
+     * Toggle eager load per default.
+     */
+    public function toggleEagerLoad(bool $toggle): void
+    {
+        $this->doEagerLoad = $toggle;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function doEagerLoad(): bool
+    {
+        return $this->doEagerLoad;
     }
 
     /**

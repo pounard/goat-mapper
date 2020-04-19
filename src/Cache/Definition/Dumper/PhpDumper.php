@@ -106,6 +106,8 @@ final class PhpDumper
 
         $this->dumpRelationCommons($relation, $writer);
 
+        $writer->write("\$relation->toggleEagerLoad(" . $this->exportBool($relation->doEagerLoad()) . ");");
+
         $writer->write("\$ret->addProperty(\$relation);");
     }
 

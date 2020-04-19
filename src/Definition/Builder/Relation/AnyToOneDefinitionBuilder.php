@@ -10,6 +10,8 @@ use Goat\Mapper\Definition\Graph\Impl\DefaultRelationAnyToOne;
 
 final class AnyToOneDefinitionBuilder extends AbstractRelationDefinitionBuilder
 {
+    private bool $doEagerLoad = true;
+
     /**
      * Set source key
      *
@@ -34,6 +36,22 @@ final class AnyToOneDefinitionBuilder extends AbstractRelationDefinitionBuilder
     public function setTargetKeyIfNotPrimaryKey(array $propertyTypeMap): void
     {
         $this->doSetTargetKey($propertyTypeMap);
+    }
+
+    /**
+     * Set this relation to be eagerly loaded per default.
+     */
+    public function enableEagerLoad(): void
+    {
+        $this->doEagerLoad = true;
+    }
+
+    /**
+     * Set this relation to be lazily loaded per default.
+     */
+    public function disableEagerLoad(): void
+    {
+        $this->doEagerLoad = false;
     }
 
     /**
