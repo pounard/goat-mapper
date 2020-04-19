@@ -1,0 +1,57 @@
+services:
+
+    # Static definition registry chain
+    goat_mapper.definition_registry.static:
+        public: false
+        class: Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry
+        calls:
+            - [setParentDefinitionRegistry, ['@goat_mapper.definition_registry']]
+
+    # Definition registry chain
+    goat_mapper.definition_registry.chain:
+        public: false
+        class: Goat\Mapper\Definition\Registry\ChainDefinitionRegistry
+
+    # PHP dumper definition registry cache
+    goat_mapper.definition_registry.php:
+        public: false
+        class: Goat\Mapper\Cache\Definition\Registry\PhpDefinitionRegistry
+        arguments: ['@goat_mapper.definition_registry.chain']
+        calls:
+            - [setParentDefinitionRegistry, ['@goat_mapper.definition_registry']]
+
+    # In-memory definition registry cache
+    goat_mapper.definition_registry.cache:
+        public: false
+        class: Goat\Mapper\Definition\Registry\CacheDefinitionRegistry
+        arguments: ['@goat_mapper.definition_registry.php']
+
+    # Facade for definition registry
+    goat_mapper.definition_registry:
+        public: true
+        alias: goat_mapper.definition_registry.cache
+
+    # GeneratedHydratorBundle hydrator registry
+    goat_mapper.hydrator_registry:
+        public: false
+        class: Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry
+        arguments: ['@generated_hydrator']
+
+    # Entity hydrator factory
+    # @todo ProxyManager configuration.
+    goat_mapper.entity_hydrator_factory:
+        public: false
+        class: Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory
+        arguments: ['@goat_mapper.definition_registry', '@goat_mapper.hydrator_registry']
+
+    # Entity manager
+    goat_mapper.entity_manager:
+        public: true
+        class: Goat\Mapper\DefaultEntityManager
+        arguments: ['@goat.runner', '@goat_mapper.definition_registry', '@goat_mapper.entity_hydrator_factory']
+
+    # Aliases for using our services transparently via service arguments.
+    Goat\Mapper\Definition\Registry\DefinitionRegistry:
+        alias: goat_mapper.definition_registry
+    Goat\Mapper\EntityManager:
+        alias: goat_mapper.entity_manager

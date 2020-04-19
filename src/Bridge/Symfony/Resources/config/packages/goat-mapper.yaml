@@ -1,0 +1,16 @@
+goat-mapper:
+
+    # This configuration will generate definitions in your app namespace
+    # for example the class:
+    #   - "App\Domain\Model\Foo" in "src/Domain/Model/Foo.php"
+    # will have the associated entity definition class:
+    #   - "App\Generated\Mapper\Definition\Domain\Model\Foo"
+    # generated in the following file:
+    #   - "src/Generated/Mapper/Definition/Domain/Model/Foo.php"
+    # Definitions will always be autoloaded without hacking over
+    # the composer autoloader this way. As a major downside, you will need
+    # to manually delete thoses files in order for them to be regenerated upon
+    # entity definition changes.
+    psr4_namespace_prefix: App
+    psr4_namespace_infix: "Generated\\Mapper\\Definition"
+    psr4_source_directory: "%kernel.project_dir%/src"

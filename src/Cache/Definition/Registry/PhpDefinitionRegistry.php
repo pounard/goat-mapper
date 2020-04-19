@@ -24,15 +24,6 @@ class PhpDefinitionRegistry extends WithParentDefinitionRegistry
         $this->decorated = $decorated;
     }
 
-    /**
-     * @deprecated
-     * @codeCoverageIgnore
-     */
-    public function setGeneratedFileDirectory(string $generatedFileDirectory): void
-    {
-        $this->getGeneratorConfiguration()->setGeneratedClassDirectory($generatedFileDirectory);
-    }
-
     public function setGeneratorConfiguration(GeneratorConfiguration $configuration): void
     {
         $this->generatorConfiguration = $configuration;
