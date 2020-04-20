@@ -29,6 +29,11 @@ interface Relation extends Property
     public function isMultiple(): bool;
 
     /**
+     * Should this relation be eargerly loaded per default?
+     */
+    public function doEagerLoad(): bool;
+
+    /**
      * Get relation mode.
      */
     public function getMode(): int;

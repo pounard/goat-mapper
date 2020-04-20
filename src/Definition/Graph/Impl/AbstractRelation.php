@@ -57,6 +57,14 @@ abstract class AbstractRelation extends AbstractProperty implements Relation
     /**
      * {@inheritdoc}
      */
+    public function doEagerLoad(): bool
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     final public function getMode(): int
     {
         return $this->mode;

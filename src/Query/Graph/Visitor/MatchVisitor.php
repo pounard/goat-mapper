@@ -17,7 +17,9 @@ class MatchVisitor extends AbstractVisitor
      */
     public function onRootNode(RootNode $node, EntityQuery $context): void
     {
-        $this->doApplyNodeConditions($node, $context);
+        if ($node->shouldMatch()) {
+            $this->doApplyNodeConditions($node, $context);
+        }
     }
 
     /**
@@ -25,7 +27,12 @@ class MatchVisitor extends AbstractVisitor
      */
     public function onPropertyNode(PropertyNode $node, Node $parent, EntityQuery $context): void
     {
-        $this->doApplyNodeConditions($node, $context);
+        if ($node->shouldAnyChildThatMatch()) {
+            // JOIN at least.
+        }
+        if ($node->shouldMatch()) {
+            $this->doApplyNodeConditions($node, $context);
+        }
     }
 
     private function doApplyNodeConditions(Node $node, EntityQuery $context, ?string $propertyName = null): void

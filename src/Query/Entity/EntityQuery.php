@@ -9,6 +9,7 @@ use Goat\Mapper\Definition\Registry\DefinitionRegistry;
 use Goat\Mapper\Error\QueryError;
 use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
 use Goat\Mapper\Query\Graph\Node;
+use Goat\Mapper\Query\Graph\PropertyNode;
 use Goat\Mapper\Query\Graph\RootNode;
 use Goat\Mapper\Query\Graph\Source;
 use Goat\Mapper\Query\Graph\Traverser;
@@ -55,15 +56,33 @@ class EntityQuery
         $definition = $definitionRegistry->getDefinition($className);
         $this->rootNode->setAlias($this->getNextAlias($primaryTableAlias ?? $definition->getTable()->getName()));
         $this->rootNode->toggleLoad();
+
+        // Set-up initial relation state: mark all relations that defaults to
+        // being lazy loaded to be lazy loaded indeed.
+        // @todo This is not ready, because when fetching related entities we
+        //   already have loaded the parent, case in which we probably MUST NOT
+        //   eager JOIN them, but let it lazy. This is true when relation is
+        //   represented both ways in your definitions.
+        /*
+        foreach ($definition->getRelations() as $relation) {
+            \assert($relation instanceof Relation);
+            if ($relation->doEagerLoad()) {
+                $this->doAddRecursion($this->rootNode, [$relation->getName()], false);
+            }
+        }
+         */
     }
 
+    /**
+     * Get root node.
+     */
     public function getRootNode(): RootNode
     {
         return $this->rootNode;
     }
 
     /**
-     * Get definition registry
+     * Get definition registry.
      */
     public function getDefinitionRegistry(): DefinitionRegistry
     {
@@ -71,7 +90,7 @@ class EntityQuery
     }
 
     /**
-     * Get the select query
+     * Get the select query.
      */
     public function getQuery(): SelectQuery
     {
@@ -104,7 +123,7 @@ class EntityQuery
      * so the path can basically be something like:
      *
      *    'client.address.street'
-     * 
+     *
      * for exemple, each dot-separated word must be a property name or a raw
      * column name of its parent.
      *
@@ -115,10 +134,30 @@ class EntityQuery
     {
         $this->ensureQueryIsNotLocked();
 
-        $this->doAddRecursion(
-            $this->rootNode,
-            \explode('.', $propertyPath)
-        );
+        $this->doAddRecursion($this->rootNode, \explode('.', $propertyPath), false);
+
+        return $this;
+    }
+
+    /**
+     * Trigger lazy loading of a nested property.
+     *
+     * This can recurse indefinitely over the repository dependency graph
+     * so the path can basically be something like:
+     *
+     *    'client.address.street'
+     *
+     * for exemple, each dot-separated word must be a property name or a raw
+     * column name of its parent.
+     *
+     * Every found relation entity will be eagerly loaded, the circuit will
+     * silently break on first to-many relation found.
+     */
+    public function lazy(string $propertyPath): self
+    {
+        $this->ensureQueryIsNotLocked();
+
+        $this->doAddRecursion($this->rootNode, \explode('.', $propertyPath), true);
 
         return $this;
     }
@@ -149,11 +188,7 @@ class EntityQuery
             return $this;
         }
 
-        $this->doMatchRecursion(
-            $this->rootNode,
-            \explode('.', $propertyPath),
-            $expression
-        );
+        $this->doMatchRecursion($this->rootNode, \explode('.', $propertyPath), $expression);
 
         return $this;
     }
@@ -169,92 +204,6 @@ class EntityQuery
         $this->aliases[$alias] = 0;
 
         return $alias;
-    }
-
-    private function doAddRecursion(Node $node, array $path): void
-    {
-        $propertyName = \array_shift($path);
-        $parentClassName = $node->getClassName();
-
-        $relation = $this
-            ->definitionRegistry
-            ->getDefinition($parentClassName)
-            ->getRelation($propertyName)
-        ;
-
-        // Relation could be a class name.
-        $propertyName = $relation->getName();
-
-        // Break eager loading for to-many relations, using a prefetcher
-        // will do the job otherwise. The N+1 problem stops where N = 1 with
-        // to many relations, problem is much more complex for those.
-        if ($relation->isMultiple()) {
-            // @todo when instrumentation will be implemented, log here.
-            return;
-        }
-
-        if ($this->isCircularDependency($parentClassName, $propertyName)) {
-            throw new QueryError(\sprintf(
-                "Circular dependency requested for relation '%s' of class %s",
-                $propertyName,
-                $parentClassName
-            ));
-        }
-
-        $entity = $relation->getEntity();
-
-        $child = $node->upsert($propertyName, $entity->getClassName());
-        $child->toggleLoad(true);
-        // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
-
-        if ($path) {
-            $this->doAddRecursion($child, $path);
-        }
-    }
-
-    private function doMatchRecursion(Node $node, array $path, $expression): void
-    {
-        $propertyName = \array_shift($path);
-        $parentClassName = $node->getClassName();
-
-        $relation = $this
-            ->definitionRegistry
-            ->getDefinition($parentClassName)
-            ->getRelation($propertyName)
-        ;
-
-        // Relation could be a class name.
-        $propertyName = $relation->getName();
-
-        // Break eager loading for to-many relations, using a prefetcher
-        // will do the job otherwise. The N+1 problem stops where N = 1 with
-        // to many relations, problem is much more complex for those.
-        if ($relation->isMultiple()) {
-            // @todo when instrumentation will be implemented, log here.
-            return;
-        }
-
-        if ($this->isCircularDependency($parentClassName, $propertyName)) {
-            throw new QueryError(\sprintf(
-                "Circular dependency requested for relation '%s' of class %s",
-                $propertyName,
-                $parentClassName
-            ));
-        }
-
-        $entity = $relation->getEntity();
-
-        $child = $node->upsert($propertyName, $entity->getClassName());
-        $child->toggleMatch(true);
-        // @todo This will be called more than once.
-        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
-
-        if ($path) {
-            $this->doMatchRecursion($child, $path, $expression);
-        } else {
-            $child->withCondition($propertyName, $expression);
-        }
     }
 
     /**
@@ -332,8 +281,64 @@ class EntityQuery
         return $this->build()->execute();
     }
 
+    private function doUpsertChild(Node $node, string $propertyName): PropertyNode
+    {
+        $parentClassName = $node->getClassName();
+
+        $relation = $this
+            ->definitionRegistry
+            ->getDefinition($parentClassName)
+            ->getRelation($propertyName)
+        ;
+
+        // Relation could be a class name.
+        $propertyName = $relation->getName();
+
+        if ($this->isCircularDependency($parentClassName, $propertyName)) {
+            throw new QueryError(\sprintf(
+                "Circular dependency requested for relation '%s' of class %s",
+                $propertyName,
+                $parentClassName
+            ));
+        }
+
+        $entity = $relation->getEntity();
+
+        $child = $node->upsert($propertyName, $entity->getClassName());
+        $child->setAlias($this->getNextAlias($entity->getTable()->getName()));
+
+        return $child;
+    }
+
+    private function doAddRecursion(Node $node, array $path, bool $lazy): void
+    {
+        $propertyName = \array_shift($path);
+        $child = $this->doUpsertChild($node, $propertyName);
+
+        $child->toggleLoad(true);
+        $child->toggleLazy(false);
+
+        if ($path) {
+            $this->doAddRecursion($child, $path, $lazy);
+        }
+    }
+
+    private function doMatchRecursion(Node $node, array $path, $expression): void
+    {
+        $propertyName = \array_shift($path);
+        $child = $this->doUpsertChild($node, $path, $expression);
+
+        if ($path) {
+            $child->toggleAnyChildShouldMatch(true);
+            $this->doMatchRecursion($child, $path, $expression);
+        } else {
+            $child->toggleMatch(true);
+            $child->withCondition($propertyName, $expression);
+        }
+    }
+
     /**
-     * Create select query
+     * Create select query.
      */
     private function createQuery(): SelectQuery
     {

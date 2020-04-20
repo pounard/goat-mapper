@@ -7,6 +7,7 @@ namespace Goat\Mapper\Query\Graph;
 final class PropertyNode extends Node
 {
     protected string $propertyName;
+    protected bool $isLazy = true;
 
     /**
      * @param string $path
@@ -35,5 +36,18 @@ final class PropertyNode extends Node
             $className,
             $this->path . '.' . $propertyName
         );
+    }
+
+    public function toggleLazy(bool $toggle = true): void
+    {
+        $this->isLazy = $toggle;
+    }
+
+    /**
+     * Should this property node be lazy loaded?
+     */
+    public function isLazy(): bool
+    {
+        return $this->isLazy;
     }
 }

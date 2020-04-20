@@ -18,9 +18,11 @@ class SelectColumnVisitor extends AbstractVisitor
      */
     public function onRootNode(RootNode $node, EntityQuery $context): void
     {
-        if ($node->shouldLoad()) {
-            $this->doAddNodeColumns($node, $context);
+        if (!$node->shouldLoad()) {
+            return;
         }
+
+        $this->doAddNodeColumns($node, $context);
     }
 
     /**
@@ -28,9 +30,19 @@ class SelectColumnVisitor extends AbstractVisitor
      */
     public function onPropertyNode(PropertyNode $node, Node $parent, EntityQuery $context): void
     {
-        if ($node->shouldLoad()) {
-            $this->doAddNodeColumns($node, $context, $node->getPath());
+        if (!$node->shouldLoad()) {
+            return;
         }
+
+        // @todo untangle mess with shouldLoad() and isLazy()
+        //    -> implement this correctly in EntityQuery
+        $relation = $this->getRelation($node, $parent, $context);
+
+        if ($relation->isMultiple()) {
+            return;
+        }
+
+        $this->doAddNodeColumns($node, $context, $node->getPath());
     }
 
     /**

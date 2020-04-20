@@ -6,6 +6,7 @@ namespace Goat\Mapper\Query\Entity;
 
 use Goat\Mapper\Definition\Identifier;
 use Goat\Mapper\Definition\Key;
+use Goat\Mapper\Error\QueryError;
 use Goat\Query\ExpressionColumn;
 use Goat\Query\Where;
 
@@ -22,6 +23,33 @@ final class QueryHelper
         } else {
             return self::createKeyConditionWithMultipleColumns($tableAlias, $key, $identifiers);
         }
+    }
+
+    /**
+     * Write SQL condition for matching the given two keys.
+     */
+    public static function createJoinConditions(
+        string $sourceTableAlias,
+        Key $sourceKey,
+        string $targetTableAlias,
+        Key $targetKey
+    ): Where {
+        if (!$sourceKey->isCompatible($targetKey)) {
+            throw new QueryError("Given keys are not compatible");
+        }
+
+        $targetKeyColumnsMap = $targetKey->getColumnNames();
+        $sourceKeyColumnsMap = $sourceKey->getColumnNames();
+
+        $where = (new Where());
+        foreach ($targetKeyColumnsMap as $i => $columnName) {
+            $where->isEqual(
+                ExpressionColumn::create($columnName, $targetTableAlias),
+                ExpressionColumn::create($sourceKeyColumnsMap[$i], $sourceTableAlias)
+            );
+        }
+
+        return $where;
     }
 
     /**

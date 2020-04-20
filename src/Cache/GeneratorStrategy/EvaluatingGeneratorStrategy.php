@@ -29,6 +29,7 @@ class EvaluatingGeneratorStrategy implements GeneratorStrategy
     public function generate(string $generatedClassName, string $generatedCode): void
     {
         // @codeCoverageIgnoreStart
+        // Very nice trick from ocramius/proxy-manager.
         if (!$this->canEval) {
             $filename = __DIR__ . '/EvaluatingGeneratorStrategy.php.tmp';
             FileWriter::writeFile($filename, $generatedCode);

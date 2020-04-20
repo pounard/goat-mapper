@@ -54,12 +54,15 @@ SELECT
     "with_one_to_many"."value"
         AS "value"
 FROM "with_one_to_many"
-INNER JOIN "with_many_to_one"
-    ON (
+WHERE EXISTS (
+    SELECT 1
+    FROM "with_many_to_one"
+    WHERE (
+        "with_many_to_one"."id" IN (?,?,?)
+    )
+    AND (
         "with_one_to_many"."id" = "with_many_to_one"."related_entity_id"
     )
-WHERE (
-    "with_many_to_one"."id" IN (?, ?, ?)
 )
 SQL
             , $query->build()
@@ -169,12 +172,15 @@ SELECT
     "with_many_to_many_foo"."serial"
         AS "serial"
 FROM "with_many_to_many_foo"
-INNER JOIN "bar_to_foo"
-    ON (
-        "with_many_to_many_foo"."serial" = "bar_to_foo"."foo_id"
+WHERE EXISTS (
+    SELECT 1
+    FROM "bar_to_foo"
+    WHERE (
+        "bar_to_foo"."foo_id" = "with_many_to_many_foo"."serial"
     )
-WHERE (
-    "bar_to_foo"."bar_id" IN (?, ?, ?)
+    AND (
+        "bar_to_foo"."bar_id" IN (?,?,?)
+    )
 )
 SQL
             , $query->build()
@@ -202,16 +208,16 @@ SELECT
     "with_many_to_many_bar"."id"
         AS "id"
 FROM "with_many_to_many_bar"
-INNER JOIN "bar_to_foo"
-    ON (
-        "with_many_to_many_bar"."id" = "bar_to_foo"."bar_id"
+WHERE EXISTS (
+    SELECT 1
+    FROM "bar_to_foo"
+    INNER JOIN "with_many_to_many_foo"
+        ON (
+            "bar_to_foo"."foo_id" = "with_many_to_many_foo"."serial"
+        )
+    WHERE (
+        "bar_to_foo"."bar_id" = "with_many_to_many_bar"."id"
     )
-INNER JOIN "with_many_to_many_foo"
-    ON (
-        "bar_to_foo"."foo_id" = "with_many_to_many_foo"."serial"
-    )
-WHERE (
-    "with_many_to_many_foo"."id" IN (?, ?, ?)
 )
 SQL
             , $query->build()

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Query\Graph\Visitor;
 
+use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Query\Entity\EntityQuery;
 use Goat\Mapper\Query\Graph\Node;
 use Goat\Mapper\Query\Graph\PropertyNode;
@@ -23,5 +24,17 @@ abstract class AbstractVisitor implements RootVisitor, PropertyVisitor
      */
     public function onPropertyNode(PropertyNode $node, Node $parent, EntityQuery $context): void
     {
+    }
+
+    /**
+     * Get related relation.
+     */
+    protected function getRelation(PropertyNode $node, Node $parent, EntityQuery $context): Relation
+    {
+        return $context
+            ->getDefinitionRegistry()
+            ->getDefinition($parent->getClassName())
+            ->getRelation($node->getPropertyName())
+        ;
     }
 }

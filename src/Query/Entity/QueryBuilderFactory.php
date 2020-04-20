@@ -106,10 +106,16 @@ class QueryBuilderFactory
             ->getRelation($propertyName)
         ;
 
-        return $this
+        $query = $this
             ->query($relation->getClassName())
             ->from($className, $propertyName, $identifiers)
         ;
+
+        // Disable eager load of inverse relation, when fetching related
+        // you probably already loaded the parent entity.
+        // $query->lazy(false);
+
+        return $query;
     }
 
     /**

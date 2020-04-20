@@ -10,8 +10,4 @@ namespace Goat\Mapper\Definition\Graph;
  */
 interface RelationAnyToOne extends Relation
 {
-    /**
-     * Should this relation be eargerly loaded per default?
-     */
-    public function doEagerLoad(): bool;
 }
