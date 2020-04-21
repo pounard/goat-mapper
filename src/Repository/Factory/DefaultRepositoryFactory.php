@@ -17,7 +17,9 @@ final class DefaultRepositoryFactory implements RepositoryFactory
     public function setEntityManager(EntityManager $entityManager): void
     {
         if ($this->entityManager) {
+            // @codeCoverageIgnoreStart
             throw new ConfigurationError("You cannot set the entity manager twice");
+            // @codeCoverageIgnoreEnd
         }
 
         $this->entityManager = $entityManager;
@@ -26,7 +28,9 @@ final class DefaultRepositoryFactory implements RepositoryFactory
     private function getEntityManager(): EntityManager
     {
         if (!$this->entityManager) {
+            // @codeCoverageIgnoreStart
             throw new IncompleteObjectInitializationError("Entity manager was not set.");
+            // @codeCoverageIgnoreEnd
         }
 
         return $this->entityManager;

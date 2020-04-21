@@ -53,7 +53,7 @@ use Goat\Mapper\Error\InvalidRepositoryDefinitionError;
  *
  * @deprecated
  */
-class LegacyArrayDefinitionRegistry implements DefinitionRegistry
+class LegacyArrayDefinitionRegistry.old implements DefinitionRegistry
 {
     use DefinitionRegistryTrait;
 

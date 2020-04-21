@@ -32,7 +32,7 @@ final class CacheDefinitionRegistry implements DefinitionRegistry
         }
 
         if (isset($this->misses[$className])) {
-            $this->repositoryDoesNotExist($className);
+            $this->entityDoesNotExist($className);
         }
 
         try {
