@@ -8,6 +8,7 @@ use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Definition\Graph\RelationAnyToOne;
+use Goat\Mapper\Error\ConfigurationError;
 
 final class DefaultRelationAnyToOne extends AbstractRelation implements RelationAnyToOne
 {
@@ -16,7 +17,7 @@ final class DefaultRelationAnyToOne extends AbstractRelation implements Relation
     public function __construct(Entity $entity, string $name, string $className, ?int $mode = Relation::MODE_MANY_TO_ONE)
     {
         if (Relation::MODE_MANY_TO_ONE !== $mode && Relation::MODE_ONE_TO_ONE !== $mode) {
-            throw new \InvalidArgumentException(\sprintf("Mode must be many to one or one to one.", __CLASS__));
+            throw new ConfigurationError(\sprintf("Mode must be many to one or one to one.", __CLASS__));
         }
 
         parent::__construct($entity, $name, $className, $mode);

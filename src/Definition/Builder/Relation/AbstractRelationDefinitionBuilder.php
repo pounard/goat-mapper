@@ -9,7 +9,7 @@ use Goat\Mapper\Definition\Builder\BuilderTrait;
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
-use Goat\Mapper\Error\ConfigurationError;
+use Goat\Mapper\Error\IncompleteObjectInitializationError;
 
 abstract class AbstractRelationDefinitionBuilder implements RelationDefinitionBuilder
 {
@@ -85,7 +85,7 @@ abstract class AbstractRelationDefinitionBuilder implements RelationDefinitionBu
     {
         if (null === $this->sourceKey) {
             if ($required) {
-                throw new ConfigurationError(\sprintf(
+                throw new IncompleteObjectInitializationError(\sprintf(
                     "Relation for property '%s' source key (target identifier in source table) must be specified using %s::setSourceKey().",
                     $this->sourcePropertyName,
                     __CLASS__
@@ -109,7 +109,7 @@ abstract class AbstractRelationDefinitionBuilder implements RelationDefinitionBu
     {
         if (null === $this->targetKey) {
             if ($required) {
-                throw new ConfigurationError(\sprintf(
+                throw new IncompleteObjectInitializationError(\sprintf(
                     "Relation for property '%s' target key (source identifier in target table) must be specified using %s::setTargetKey().",
                     $this->sourcePropertyName,
                     __CLASS__

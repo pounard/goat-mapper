@@ -8,6 +8,7 @@ use Goat\Mapper\Definition\Key;
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Error\ConfigurationError;
+use Goat\Mapper\Error\IncompleteObjectInitializationError;
 
 abstract class AbstractRelation extends AbstractProperty implements Relation
 {
@@ -20,7 +21,7 @@ abstract class AbstractRelation extends AbstractProperty implements Relation
     public function __construct(Entity $entity, string $name, string $className, int $mode)
     {
         if ($mode < 1 || 4 < $mode) {
-            throw new \InvalidArgumentException(\sprintf("Mode must be one of the %s::MODE_* constants.", __CLASS__));
+            throw new ConfigurationError(\sprintf("Mode must be one of the %s::MODE_* constants.", __CLASS__));
         }
 
         parent::__construct($name);
@@ -115,7 +116,7 @@ abstract class AbstractRelation extends AbstractProperty implements Relation
      */
     protected function findDefaultSourceKey(): Key
     {
-        throw new ConfigurationError("Source key is missing from definition.");
+        throw new IncompleteObjectInitializationError("Source key is missing from definition.");
     }
 
     /**
@@ -155,6 +156,6 @@ abstract class AbstractRelation extends AbstractProperty implements Relation
      */
     private function entityIsNotSet(): void
     {
-        throw new ConfigurationError("Entity is missing from definition.");
+        throw new IncompleteObjectInitializationError("Entity is missing from definition.");
     }
 }

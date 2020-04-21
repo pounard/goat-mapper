@@ -9,7 +9,7 @@ use Goat\Mapper\Definition\Table;
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Definition\Graph\RelationManyToMany;
-use Goat\Mapper\Error\ConfigurationError;
+use Goat\Mapper\Error\IncompleteObjectInitializationError;
 
 final class DefaultRelationManyToMany extends AbstractRelation implements RelationManyToMany
 {
@@ -107,6 +107,6 @@ final class DefaultRelationManyToMany extends AbstractRelation implements Relati
      */
     private function mappingTableIsNotSet(): void
     {
-        throw new ConfigurationError("Mapping table is missing from definition.");
+        throw new IncompleteObjectInitializationError("Mapping table is missing from definition.");
     }
 }

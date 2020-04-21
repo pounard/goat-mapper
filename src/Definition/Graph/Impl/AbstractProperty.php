@@ -6,6 +6,7 @@ namespace Goat\Mapper\Definition\Graph\Impl;
 
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Error\ConfigurationError;
+use Goat\Mapper\Error\IncompleteObjectInitializationError;
 
 abstract class AbstractProperty extends AbstractNode
 {
@@ -44,7 +45,7 @@ abstract class AbstractProperty extends AbstractNode
     public function getOwner(): Entity
     {
         if (!$this->owner) {
-            throw new ConfigurationError("Unitialized owner.");
+            throw new IncompleteObjectInitializationError("Unitialized owner.");
         }
         return $this->owner;
     }

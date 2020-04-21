@@ -6,6 +6,7 @@ namespace Goat\Mapper\Definition\Graph\Impl;
 
 use Goat\Mapper\Definition\Graph\Node;
 use Goat\Mapper\Error\ConfigurationError;
+use Goat\Mapper\Error\IncompleteObjectInitializationError;
 
 abstract class AbstractNode implements Node
 {
@@ -28,7 +29,7 @@ abstract class AbstractNode implements Node
     public function getInternalId(): string
     {
         if (!$this->internalId) {
-            throw new ConfigurationError("Unitialized internal identifier.");
+            throw new IncompleteObjectInitializationError("Unitialized internal identifier.");
         }
         return $this->internalId;
     }

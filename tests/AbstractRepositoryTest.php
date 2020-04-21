@@ -139,6 +139,33 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         }
     }
 
+    protected function createDefinitionRegistry(): DefinitionRegistry
+    {
+        /*
+        $userArrayData = [];
+        foreach (self::getTestEntityClasses() as $className) {
+            if (\method_exists($className, 'toDefinitionArray')) {
+                $userArrayData[$className] = \call_user_func([$className, 'toDefinitionArray']);
+            }
+        }
+         */
+
+        $cacheDefinitionRegistry = new CacheDefinitionRegistry(
+            $phpCacheDecorator = new PhpDefinitionRegistry(
+                new ChainDefinitionRegistry([
+                    $staticEntityDefinitionRegistry = new StaticEntityDefinitionRegistry(),
+                    // new LegacyArrayDefinitionRegistry($userArrayData),
+                ])
+            )
+        );
+
+        $phpCacheDecorator->setGeneratorConfiguration($this->createGeneratorConfiguration());
+        $phpCacheDecorator->setParentDefinitionRegistry($cacheDefinitionRegistry);
+        $staticEntityDefinitionRegistry->setParentDefinitionRegistry($cacheDefinitionRegistry);
+
+        return $cacheDefinitionRegistry;
+    }
+
     private function createHydratorRegistry(): HydratorRegistry
     {
         $cacheDirectory = __DIR__;
@@ -203,32 +230,5 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
          */
 
         return $configuration;
-    }
-
-    private function createDefinitionRegistry(): DefinitionRegistry
-    {
-        /*
-        $userArrayData = [];
-        foreach (self::getTestEntityClasses() as $className) {
-            if (\method_exists($className, 'toDefinitionArray')) {
-                $userArrayData[$className] = \call_user_func([$className, 'toDefinitionArray']);
-            }
-        }
-         */
-
-        $cacheDefinitionRegistry = new CacheDefinitionRegistry(
-            $phpCacheDecorator = new PhpDefinitionRegistry(
-                new ChainDefinitionRegistry([
-                    $staticEntityDefinitionRegistry = new StaticEntityDefinitionRegistry(),
-                    // new LegacyArrayDefinitionRegistry($userArrayData),
-                ])
-            )
-        );
-
-        $phpCacheDecorator->setGeneratorConfiguration($this->createGeneratorConfiguration());
-        $phpCacheDecorator->setParentDefinitionRegistry($cacheDefinitionRegistry);
-        $staticEntityDefinitionRegistry->setParentDefinitionRegistry($cacheDefinitionRegistry);
-
-        return $cacheDefinitionRegistry;
     }
 }

@@ -16,7 +16,7 @@ use Goat\Mapper\Tests\Mock\WithOneToManyRelation;
 
 final class DefinitionBuilderGraphTest extends AbstractRepositoryTest
 {
-    private function createDefinitionRegistry(): DefinitionRegistry
+    protected function createDefinitionRegistry(): DefinitionRegistry
     {
         $definitionRegistry = new CacheDefinitionRegistry(
             new ChainDefinitionRegistry([

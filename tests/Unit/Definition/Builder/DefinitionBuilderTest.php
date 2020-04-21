@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 final class DefinitionBuilderTest extends TestCase
 {
-    private function createDefinitionRegistry(): DefinitionRegistry
+    protected function createDefinitionRegistry(): DefinitionRegistry
     {
         return new CacheDefinitionRegistry(
             new ChainDefinitionRegistry([

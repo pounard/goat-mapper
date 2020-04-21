@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Goat\Mapper;
 
 use Goat\Mapper\Definition\Registry\DefinitionRegistry;
-use Goat\Mapper\Query\Entity\QueryBuilderFactory;
-use Goat\Runner\Runner;
 use Goat\Mapper\Query\Entity\EntityQuery;
+use Goat\Mapper\Query\Entity\QueryBuilderFactory;
+use Goat\Mapper\Repository\Registry\RepositoryRegistry;
+use Goat\Runner\Runner;
 
-interface EntityManager
+interface EntityManager extends RepositoryRegistry
 {
     /**
      * Get SQL query runner

@@ -9,7 +9,7 @@ use Goat\Mapper\Definition\Table;
 use Goat\Mapper\Definition\Graph\Entity;
 use Goat\Mapper\Definition\Graph\Relation;
 use Goat\Mapper\Definition\Graph\Impl\DefaultRelationManyToMany;
-use Goat\Driver\ConfigurationError;
+use Goat\Mapper\Error\IncompleteObjectInitializationError;
 
 final class ManyToManyDefinitionBuilder extends AbstractRelationDefinitionBuilder
 {
@@ -85,7 +85,7 @@ final class ManyToManyDefinitionBuilder extends AbstractRelationDefinitionBuilde
     private function compileMappingTable(): Table
     {
         if (!$this->mappingTable) {
-            throw new ConfigurationError(\sprintf(
+            throw new IncompleteObjectInitializationError(\sprintf(
                 "Relation for property '%s' mapping table name must be specified using %s::setMappingTable().",
                 $this->sourcePropertyName,
                 __CLASS__
@@ -98,7 +98,7 @@ final class ManyToManyDefinitionBuilder extends AbstractRelationDefinitionBuilde
     private function compileMappingSourceKey(): Key
     {
         if (null === $this->mappingSourceKey) {
-            throw new ConfigurationError(\sprintf(
+            throw new IncompleteObjectInitializationError(\sprintf(
                 "Relation for property '%s' mapping source key (source key in mapping table) must be specified using %s::setMappingSourceKey().",
                 $this->sourcePropertyName,
                 __CLASS__
@@ -111,7 +111,7 @@ final class ManyToManyDefinitionBuilder extends AbstractRelationDefinitionBuilde
     private function compileMappingTargetKey(): Key
     {
         if (null === $this->mappingTargetKey) {
-            throw new ConfigurationError(\sprintf(
+            throw new IncompleteObjectInitializationError(\sprintf(
                 "Relation for property '%s' mapping target key (target key in mapping table) must be specified using %s::setMappingTargetKey().",
                 $this->sourcePropertyName,
                 __CLASS__
