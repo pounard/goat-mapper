@@ -16,6 +16,9 @@
         <testsuite name="Functional">
             <directory>./tests/Functional</directory>
         </testsuite>
+        <testsuite name="Sample">
+            <directory>./tests/Sample</directory>
+        </testsuite>
         <testsuite name="Unit">
             <directory>./tests/Unit</directory>
         </testsuite>

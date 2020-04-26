@@ -4,38 +4,11 @@ declare(strict_types=1);
 
 namespace Goat\Mapper\Repository\Factory;
 
-use Goat\Mapper\EntityManager;
-use Goat\Mapper\Error\ConfigurationError;
-use Goat\Mapper\Error\IncompleteObjectInitializationError;
 use Goat\Mapper\Repository\DefaultRepository;
 use Goat\Mapper\Repository\Repository;
 
-final class DefaultRepositoryFactory implements RepositoryFactory
+final class DefaultRepositoryFactory extends AbstractRepositoryFactory
 {
-    private ?EntityManager $entityManager = null;
-
-    public function setEntityManager(EntityManager $entityManager): void
-    {
-        if ($this->entityManager) {
-            // @codeCoverageIgnoreStart
-            throw new ConfigurationError("You cannot set the entity manager twice");
-            // @codeCoverageIgnoreEnd
-        }
-
-        $this->entityManager = $entityManager;
-    }
-
-    private function getEntityManager(): EntityManager
-    {
-        if (!$this->entityManager) {
-            // @codeCoverageIgnoreStart
-            throw new IncompleteObjectInitializationError("Entity manager was not set.");
-            // @codeCoverageIgnoreEnd
-        }
-
-        return $this->entityManager;
-    }
-
     /**
      * {@inheritdoc}
      */

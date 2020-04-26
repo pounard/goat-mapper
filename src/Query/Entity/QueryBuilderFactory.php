@@ -79,6 +79,14 @@ class QueryBuilderFactory
     }
 
     /**
+     * Get entity hydrator factory.
+     */
+    public function getEntityHydratorFactory(): EntityHydratorFactory
+    {
+        return $this->entityHydratorFactory;
+    }
+
+    /**
      * Create and get a SELECT query builder for this repository.
      */
     public function query(string $className, ?string $primaryTableAlias = null): EntityQuery

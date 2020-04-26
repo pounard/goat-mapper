@@ -9,3 +9,4 @@ Usage
 
    entity
    query
+   tutorials/index

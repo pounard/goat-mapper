@@ -257,8 +257,66 @@ Custom implementation
 
 @todo
 
-Setup the manager
-#################
+Setup repository registry (optional)
+####################################
+
+Repository registry is the component responsible for loading repositories
+when they are request.
+
+In order to achieve this, it uses a repository factory, responsible for creating
+the repository instances.
+
+It works like the definition registry, and uses a chain implementation in order
+to be able to use different factories:
+
+.. code-block:: php
+
+   <?php
+
+   use Goat\Mapper\Repository\Factory\ChainRepositoryFactory;
+   use Goat\Mapper\Repository\Factory\DefaultRepositoryFactory;
+
+   $chainRepositoryFactory = new ChainRepositoryFactory();
+   $repositoryRegistry = new DefaultRepositoryRegistry($chainRepositoryFactory);
+
+   $chainRepositoryFactory->add($defaultRepositoryFactory);
+
+Now, you may register your custom factories:
+
+.. code-block:: php
+
+   <?php
+
+   use Goat\Mapper\Repository\Factory\ChainRepositoryFactory;
+   use Goat\Mapper\Repository\Factory\DefaultRepositoryFactory;
+
+   $chainRepositoryFactory = new ChainRepositoryFactory();
+   $repositoryRegistry = new DefaultRepositoryRegistry($chainRepositoryFactory);
+
+   $defaultRepositoryFactory = new DefaultRepositoryFactory();
+   $customRepositoryFactory = new MyApplicationRepositoryFactory();
+
+   $chainRepositoryFactory->add($customRepositoryFactory);
+   $chainRepositoryFactory->add($defaultRepositoryFactory);
+
+Most repository factory will need the entity manager dependency in order to
+inject it into newly instanciated repositories.
+
+@todo link below
+
+.. warning::
+
+   Be careful, order matters: the default repository implementation should
+   always come last, otherwise it would hide other implementations.
+
+.. note::
+
+   Instanciating a repository registry is optional, if you don't need custom
+   repository implementation, default implementations will be instanciated
+   automatically.
+
+Setup the entity manager
+########################
 
 Manager is the only dependency you code will need once it is setup. It knows
 the entity definition registry, and is able to build complex SQL queries for
@@ -283,11 +341,46 @@ Seting it up is as easy as:
 
    use Goat\Mapper\DefaultEntityManager;
 
-   $manager = new DefaultEntityManager(
+   $entityManager = new DefaultEntityManager(
        $runner,
        $definitionRegistry,
        $entityHydrator
    );
+
+If you created a repository registry, you should inject it as the fourth
+parameter of the default entity manager as such:
+
+.. code-block:: php
+
+   <?php
+
+   use Goat\Mapper\DefaultEntityManager;
+
+   $entityManager = new DefaultEntityManager(
+       $runner,
+       $definitionRegistry,
+       $entityHydrator,
+       $repositoryRegistry
+   );
+
+.. note::
+
+   Repository registry is optional, if you don't need custom repository
+   implementations, ignore this parameter, default repositories will be
+   instanciated automatically on-demand for you.
+
+Inject entity manager dependency
+################################
+
+Final step is to inject the entity manager instance to implementations that
+need it in order to solve circular dependencies between components.
+
+.. code-block:: php
+
+   <?php
+
+   $customRepositoryFactory->setEntityManager($entityManager);
+   $defaultRepositoryFactory->setEntityManager($entityManager);
 
 Wrapping it up
 ##############
@@ -310,6 +403,9 @@ Here is a complete sample of full initialization:
    use Goat\Mapper\Definition\Registry\StaticEntityDefinitionRegistry;
    use Goat\Mapper\Hydration\EntityHydrator\EntityHydratorFactory;
    use Goat\Mapper\Hydration\HydratorRegistry\GeneratedHydratorBundleHydratorRegistry;
+   use Goat\Mapper\Repository\Factory\ChainRepositoryFactory;
+   use Goat\Mapper\Repository\Factory\DefaultRepositoryFactory;
+   use Goat\Mapper\Sample\Repository\Factory\MyApplicationRepositoryFactory;
 
    // Definition registry
 
@@ -318,7 +414,6 @@ Here is a complete sample of full initialization:
    $definitionRegistry = new CacheDefinitionRegistry($phpDefinitionRegistry);
 
    $phpDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
-   $phpDefinitionRegistry->setGeneratedFileDirectory('/some/path/');
 
    $staticDefinitionRegistry = new StaticEntityDefinitionRegistry();
    $staticDefinitionRegistry->setParentDefinitionRegistry($definitionRegistry);
@@ -345,13 +440,25 @@ Here is a complete sample of full initialization:
    );
    $runner = $driver->getRunner();
 
+   // Repository registry
+
+   $chainRepositoryFactory = new ChainRepositoryFactory();
+   $defaultRepositoryFactory = new DefaultRepositoryFactory();
+   $customRepositoryFactory = new MyApplicationRepositoryFactory();
+
+   $chainRepositoryFactory->add($customRepositoryFactory);
+   $chainRepositoryFactory->add($defaultRepositoryFactory);
+
    // Entity manager
 
-   $manager = new DefaultEntityManager(
+   $entityManager = new DefaultEntityManager(
        $runner,
        $definitionRegistry,
        $entityHydrator
    );
+
+   $customRepositoryFactory->setEntityManager($entityManager);
+   $defaultRepositoryFactory->setEntityManager($entityManager);
 
 Of course, adapt to your needs or your framework and tooling.
 

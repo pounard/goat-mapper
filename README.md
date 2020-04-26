@@ -191,7 +191,7 @@ Priority 2, rework collections
 
 Priority 3, repositories and customization
 
- - [ ] create a repository manager which only handles repositories, but nothing
+ - [x] create a repository registry which only handles repositories, but nothing
    else,
 
  - [ ] allow custom repositories to be used instead of the default one,
