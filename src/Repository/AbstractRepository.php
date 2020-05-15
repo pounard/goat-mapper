@@ -12,8 +12,8 @@ use Goat\Mapper\Query\Relation\DefaultRelationFetcher;
 use Goat\Query\DeleteQuery;
 use Goat\Query\ExpressionColumn;
 use Goat\Query\ExpressionRelation;
-use Goat\Query\InsertQueryQuery;
-use Goat\Query\InsertValuesQuery;
+use Goat\Query\InsertQuery;
+use Goat\Query\MergeQuery;
 use Goat\Query\Query;
 use Goat\Query\UpdateQuery;
 use Goat\Runner\Runner;
@@ -71,8 +71,8 @@ abstract class AbstractRepository implements Repository
     {
         if (!$query instanceof UpdateQuery &&
             !$query instanceof DeleteQuery &&
-            !$query instanceof InsertValuesQuery &&
-            !$query instanceof InsertQueryQuery
+            !$query instanceof InsertQuery &&
+            !$query instanceof MergeQuery
         ) {
             throw new QueryError(\sprintf(
                 "Cannot add RETURNING clause on query of type %s",
