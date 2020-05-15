@@ -11,6 +11,8 @@ services:
     goat_mapper.definition_registry.chain:
         public: false
         class: Goat\Mapper\Definition\Registry\ChainDefinitionRegistry
+        calls:
+            - [add, ['@goat_mapper.definition_registry.static']]
 
     # PHP dumper definition registry cache
     goat_mapper.definition_registry.php:

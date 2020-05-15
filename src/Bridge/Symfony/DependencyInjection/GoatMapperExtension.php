@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Goat\Mapper\Bridge\Symfony\DependencyInjection;
 
 use GeneratedHydrator\Bridge\Symfony\GeneratedHydratorBundle;
+use Goat\Mapper\Cache\GeneratorConfiguration;
+use Goat\Mapper\Cache\FileLocator\DefaultFileLocator;
+use Goat\Mapper\Cache\Inflector\DefaultClassNameInflector;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -34,21 +39,49 @@ final class GoatMapperExtension extends Extension
 
     private function createDefaultPsr4Factory(ContainerBuilder $container, array $config): void
     {
-        /*
-        $serviceId = 'generated_hydrator.psr4_configuration';
+        $serviceId = 'goat_mapper.cache.generator_configuration';
 
         $definition = new Definition();
-        $definition->setClass(Psr4Factory::class);
+        $definition->setClass(GeneratorConfiguration::class);
+
+        if (isset($config['psr4_namespace_infix']) || isset($config['psr4_namespace_prefix'])) {
+            $classNameInflectorId = 'goat_mapper.cache.generator_configuration.class_name_inflector';
+
+            $classNameInflectorDefinition = new Definition();
+            $classNameInflectorDefinition->setClass(DefaultClassNameInflector::class);
+            $classNameInflectorDefinition->setPrivate(true);
+            $classNameInflectorDefinition->setArguments([
+                $config['psr4_namespace_prefix'] ?? null,
+                $config['psr4_namespace_infix'] ?? DefaultClassNameInflector::DEFAULT_INFIX // @todo allow strict null
+            ]);
+            $container->setDefinition($classNameInflectorId, $classNameInflectorDefinition);
+
+            $definition->addMethodCall('setClassNameInflector', [new Reference($classNameInflectorId)]);
+        }
+
+        if (isset($config['psr4_source_directory'])) {
+            $fileLocatorId = 'goat_mapper.cache.generator_configuration.file_locator';
+
+            $fileLocatorDefinition = new Definition();
+            $fileLocatorDefinition->setClass(DefaultFileLocator::class);
+            $fileLocatorDefinition->setPrivate(true);
+            $fileLocatorDefinition->setArguments([
+                $config['psr4_source_directory'],
+                $config['psr4_namespace_prefix'] ?? null,
+            ]);
+            $container->setDefinition($fileLocatorId, $fileLocatorDefinition);
+
+            $definition->addMethodCall('setFileLocator', [new Reference($fileLocatorId)]);
+            $definition->addMethodCall('setGeneratedClassDirectory', [$config['psr4_source_directory']]);
+        }
+
         $definition->setPrivate(true);
-        $definition->setArguments([
-            $config['psr4_source_directory'],
-            $config['psr4_namespace_prefix'],
-            $config['psr4_namespace_infix'],
-        ]);
         $container->setDefinition($serviceId, $definition);
 
-        $container->getDefinition('generated_hydrator.default')->addMethodCall('setPsr4Factory', [new Reference($serviceId)]);
-         */
+        $container->getDefinition('goat_mapper.definition_registry.php')->addMethodCall(
+            'setGeneratorConfiguration',
+            [new Reference($serviceId)]
+        );
     }
 
     private function configureDefaultHydrator(ContainerBuilder $container, array $config): void

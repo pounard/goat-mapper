@@ -7,11 +7,12 @@ namespace Goat\Mapper\Cache\Inflector;
 final class DefaultClassNameInflector implements ClassNameInflector
 {
     const DEFAULT_NAMESPACE = 'Goat\\Mapper\\Generated\\Definition';
+    const DEFAULT_INFIX = 'Generated\\Definition';
 
     private string $namespacePrefix;
     private ?string $namespaceInfix = null;
 
-    public function __construct(?string $namespacePrefix = null, ?string $namespaceInfix = 'Generated\\Definition')
+    public function __construct(?string $namespacePrefix = null, ?string $namespaceInfix = self::DEFAULT_INFIX)
     {
         $this->namespacePrefix = $namespacePrefix ?? self::DEFAULT_NAMESPACE;
         $this->namespaceInfix = $namespaceInfix ? \trim($namespaceInfix, '\\') : null;
