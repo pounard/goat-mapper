@@ -21,8 +21,9 @@ This tutorial will show you how to:
 During this whole tutorial, consider ``Goat\Mapper\Sample`` to be your own
 ``Vendor\Application`` namespace.
 
-You can find the working code under the ``samples/`` folder, they are being
-used for functional tests, so they always will be up to date.
+.. note::
+
+   You can find the working code in the ``samples/`` directory.
 
 Define your entity
 ^^^^^^^^^^^^^^^^^^

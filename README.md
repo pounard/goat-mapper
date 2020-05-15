@@ -194,7 +194,7 @@ Priority 3, repositories and customization
  - [x] create a repository registry which only handles repositories, but nothing
    else,
 
- - [ ] allow custom repositories to be used instead of the default one,
+ - [x] allow custom repositories to be used instead of the default one,
 
  - [ ] add custom repository logic to symfony bundle,
 
@@ -275,7 +275,7 @@ Backlog, for later or when I'm bored:
 
  - [ ] handle null references when lazy loading any to one relationship,
    as of today, a virtual proxy is used, but it'll crash if loaded reference
-   is null,
+   is null, this an important one, but a hard one,
 
  - [ ] EXISTS/CTE optimisations for lazy loading,
 
