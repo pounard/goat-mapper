@@ -35,7 +35,7 @@
         }
     },
     "require" : {
-        "makinacorpus/goat-query": "^2.0.0",
+        "makinacorpus/goat-query": "^2.1.1",
         "ocramius/generated-hydrator": "^3.1",
         "ocramius/proxy-manager": "^2.7",
         "php" : ">=7.4",

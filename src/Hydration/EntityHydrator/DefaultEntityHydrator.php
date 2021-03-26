@@ -51,7 +51,7 @@ final class DefaultEntityHydrator implements EntityHydrator
                 if (!\is_array($value)) {
                     // It may have been hydrated, one way or another. This
                     // should not happen, really, this is supposed to be goat
-                    // query result raw data, but we never now.
+                    // query result raw data, but we never know.
                     // @todo instrument here
                     continue;
                 }
